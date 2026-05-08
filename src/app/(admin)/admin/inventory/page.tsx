@@ -1,5 +1,5 @@
 // src/app/(admin)/admin/inventory/page.tsx
-// Admin inventory list — shows all items including deleted
+// Admin inventory list — initial batch of 20, infinite scroll via AdminInventoryGrid
 
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
@@ -11,7 +11,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { PlusCircle } from "lucide-react";
-import type { InventoryItem } from "@/types";
+import type { InventoryItem, PaginatedResponse } from "@/types";
 import MobileMenuButton from "@/components/admin/MobileMenuButton";
 
 export const metadata: Metadata = {
@@ -20,28 +20,30 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
+const LIMIT = 20;
+
 interface PageProps {
   searchParams: Promise<{ status?: string; search?: string; category?: string; brand?: string }>;
 }
 
-export default async function AdminInventoryPage({ searchParams }: PageProps) {
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== "admin") redirect("/login");
-
-  const params = await searchParams;
-  const status = params.status ?? "active";
-  const search = params.search ?? "";
-  const category = params.category ?? "";
-  const brandId = params.brand ?? "";
-
+async function getInitialAdminInventory(
+  status: string,
+  search: string,
+  category: string,
+  brandId: string
+): Promise<PaginatedResponse<InventoryItem>> {
   const where = {
-    isDeleted: status === "deleted" ? true : status === "active" ? false : undefined,
+    isDeleted:
+      status === "deleted" ? true
+      : status === "active" ? false
+      : undefined,
     ...(category ? { category: category as any } : {}),
-    ...(brandId ? { brandId } : {}),
+    ...(brandId  ? { brandId }                  : {}),
     ...(search
       ? {
           OR: [
-            { brand: { name: { contains: search, mode: "insensitive" as const } } },
+            { id:          { contains: search, mode: "insensitive" as const } },
+            { brand:       { name:        { contains: search, mode: "insensitive" as const } } },
             { modelNumber: { contains: search, mode: "insensitive" as const } },
             { description: { contains: search, mode: "insensitive" as const } },
           ],
@@ -49,14 +51,62 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
       : {}),
   };
 
-  const [items, brands] = await Promise.all([
-    prisma.inventoryItem.findMany({
-      where,
-      include: { brand: true },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.brand.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } })
+  const rawItems = await prisma.inventoryItem.findMany({
+    where,
+    take: LIMIT + 1,
+    orderBy: { createdAt: "desc" },
+    include: { brand: true },
+  });
+
+  const hasMore    = rawItems.length > LIMIT;
+  const items      = hasMore ? rawItems.slice(0, LIMIT) : rawItems;
+  const nextCursor = hasMore ? items[items.length - 1].id : null;
+
+  return { items: items as unknown as InventoryItem[], nextCursor };
+}
+
+export default async function AdminInventoryPage({ searchParams }: PageProps) {
+  const session = await getServerSession(authOptions);
+  if (!session || session.user.role !== "admin") redirect("/login");
+
+  const params   = await searchParams;
+  const status   = params.status   ?? "active";
+  const search   = params.search   ?? "";
+  const category = params.category ?? "";
+  const brandId  = params.brand    ?? "";
+
+  // Build shared where for count query
+  const countWhere = {
+    isDeleted:
+      status === "deleted" ? true
+      : status === "active" ? false
+      : undefined,
+    ...(category ? { category: category as any } : {}),
+    ...(brandId  ? { brandId }                  : {}),
+    ...(search
+      ? {
+          OR: [
+            { id:          { contains: search, mode: "insensitive" as const } },
+            { brand:       { name:        { contains: search, mode: "insensitive" as const } } },
+            { modelNumber: { contains: search, mode: "insensitive" as const } },
+            { description: { contains: search, mode: "insensitive" as const } },
+          ],
+        }
+      : {}),
+  };
+
+  // Run initial batch + total count in parallel — count is a lightweight aggregation
+  const [initialData, totalCount, brands] = await Promise.all([
+    getInitialAdminInventory(status, search, category, brandId),
+    prisma.inventoryItem.count({ where: countWhere }),
+    prisma.brand.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
   ]);
+
+  const showDeleted = status === "deleted" || status === "all";
+  const statusLabel =
+    status === "deleted" ? "deleted "
+    : status === "active" ? "active "
+    : "";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -69,7 +119,7 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
               Inventory
             </h1>
             <p style={{ fontSize: "13px", color: "var(--color-text-muted)", marginTop: "3px" }}>
-              {items.length} {status === "deleted" ? "deleted " : status === "active" ? "active " : ""}item{items.length !== 1 ? "s" : ""}
+              {totalCount} {statusLabel}item{totalCount !== 1 ? "s" : ""}
             </p>
           </div>
         </div>
@@ -83,11 +133,18 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
 
       {/* Search and Filters */}
       <Suspense fallback={null}>
-        <SearchFilterBar brands={brands} showStatusFilter={true} />
+        <SearchFilterBar brands={brands} showStatusFilter={true} placeholder="Search by model, brand, ID…" />
       </Suspense>
 
-      {/* Grid */}
-      <AdminInventoryGrid items={items as InventoryItem[]} showDeleted={status === "deleted" || status === "all"} />
+      {/* Infinite-scroll grid */}
+      <AdminInventoryGrid
+        initialData={initialData}
+        search={search}
+        category={category}
+        brandId={brandId}
+        status={status}
+        showDeleted={showDeleted}
+      />
     </div>
   );
 }

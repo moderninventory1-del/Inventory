@@ -10,9 +10,10 @@ import { ITEM_CATEGORIES } from "@/types";
 interface SearchFilterBarProps {
   brands: { id: string; name: string }[];
   showStatusFilter?: boolean;
+  placeholder?: string;
 }
 
-export default function SearchFilterBar({ brands, showStatusFilter }: SearchFilterBarProps) {
+export default function SearchFilterBar({ brands, showStatusFilter, placeholder }: SearchFilterBarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -95,7 +96,7 @@ export default function SearchFilterBar({ brands, showStatusFilter }: SearchFilt
           type="text"
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
-          placeholder="Search by model number or brand…"
+          placeholder={placeholder ?? "Search by model number or brand…"}
           className="input-field"
           style={{ paddingLeft: "44px", paddingRight: hasFilters ? "44px" : "14px" }}
           aria-label="Search inventory"
