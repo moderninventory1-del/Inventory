@@ -40,6 +40,12 @@ function validateItemData(data: ItemFormData): string | null {
   if (!data.modelNumber.trim()) return "Model number is required";
   if (!data.brandId.trim()) return "Brand is required";
   if (!data.category.trim()) return "Category is required";
+<<<<<<< HEAD
+=======
+  if (!ITEM_CATEGORIES.includes(data.category as ItemCategory)) {
+    return "Invalid category selected";
+  }
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
   return null;
 }
 
@@ -81,7 +87,11 @@ export async function createInventoryItem(formData: FormData): Promise<ActionRes
       data: {
         modelNumber: data.modelNumber.trim(),
         brandId: data.brandId.trim(),
+<<<<<<< HEAD
         category: data.category.trim().toUpperCase(),
+=======
+        category: data.category as ItemCategory,
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
         boxLocation: data.boxLocation.trim() || null,
         description: data.description.trim() || null,
         frontImage: frontUpload.secure_url,
@@ -154,7 +164,11 @@ export async function updateInventoryItem(
       data: {
         modelNumber: data.modelNumber.trim(),
         brandId: data.brandId.trim(),
+<<<<<<< HEAD
         category: data.category.trim().toUpperCase(),
+=======
+        category: data.category as ItemCategory,
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
         boxLocation: data.boxLocation.trim() || null,
         description: data.description.trim() || null,
         frontImage: frontUrl,
@@ -270,6 +284,7 @@ export async function createBrand(name: string): Promise<BrandActionResult> {
     return { success: false, error: "Failed to create brand" };
   }
 }
+<<<<<<< HEAD
 
 // ─── Create Category ─────────────────────────────────────────────────────────
 
@@ -317,3 +332,5 @@ export async function createCategory(name: string): Promise<CategoryActionResult
     return { success: false, error: "Failed to create category" };
   }
 }
+=======
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609

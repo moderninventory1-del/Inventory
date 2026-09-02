@@ -4,7 +4,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+<<<<<<< HEAD
 import { useRouter } from "next/navigation";
+=======
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 import { useState, useTransition } from "react";
 import toast from "react-hot-toast";
 import { Tv2, ChevronDown, ChevronUp, Pencil, Trash2, RotateCcw, Loader2, Eye, MapPin } from "lucide-react";
@@ -18,7 +21,10 @@ interface AdminItemCardProps {
 }
 
 export default function AdminItemCard({ item, showDeleted = false }: AdminItemCardProps) {
+<<<<<<< HEAD
   const router = useRouter();
+=======
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
   const [isPending, startTransition] = useTransition();
   const [localDeleted, setLocalDeleted] = useState(item.isDeleted);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -40,9 +46,14 @@ export default function AdminItemCard({ item, showDeleted = false }: AdminItemCa
     startTransition(async () => {
       const result = await restoreInventoryItem(item.id);
       if (result.success) {
+<<<<<<< HEAD
         toast.success("Item restored. Opening edit page to update details…");
         setLocalDeleted(false);
         router.push(`/admin/inventory/${item.id}/edit`);
+=======
+        toast.success("Item restored");
+        setLocalDeleted(false);
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
       } else {
         toast.error(result.error);
       }
@@ -110,7 +121,11 @@ export default function AdminItemCard({ item, showDeleted = false }: AdminItemCa
                 position: "absolute",
                 bottom: "10px",
                 right: "10px",
+<<<<<<< HEAD
                 background: "rgba(0,0,0,0.65)",
+=======
+                background: "rgba(0,0,0,0.75)",
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
                 backdropFilter: "blur(4px)",
                 padding: "4px 8px",
                 borderRadius: "6px",
@@ -120,7 +135,11 @@ export default function AdminItemCard({ item, showDeleted = false }: AdminItemCa
                 fontSize: "11px",
                 fontWeight: 600,
                 color: "#fff",
+<<<<<<< HEAD
                 border: "1px solid rgba(255,255,255,0.2)",
+=======
+                border: "1px solid rgba(255,255,255,0.1)",
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
               }}
             >
               <MapPin size={12} />

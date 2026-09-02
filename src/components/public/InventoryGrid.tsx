@@ -1,6 +1,10 @@
 "use client";
 // src/components/public/InventoryGrid.tsx
+<<<<<<< HEAD
 // Infinite-scroll inventory grid — preloads next 15 items when scrolling to 10th item
+=======
+// Infinite-scroll inventory grid — client component
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import ItemCard from "./ItemCard";
@@ -25,11 +29,15 @@ export default function InventoryGrid({
   const [cursor, setCursor] = useState<string | null>(initialData.nextCursor);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasError, setHasError] = useState(false);
+<<<<<<< HEAD
 
   // Trigger index: at 10 items (index 9 in a 15-item batch, or items.length - 6)
   const triggerIndex = Math.max(0, items.length - 6);
   const triggerRef = useRef<HTMLDivElement | null>(null);
   const bottomSentinelRef = useRef<HTMLDivElement | null>(null);
+=======
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 
   // Reset when filters change
   useEffect(() => {
@@ -49,7 +57,10 @@ export default function InventoryGrid({
       if (category) params.set("category", category);
       if (brandId) params.set("brand", brandId);
       if (cursor) params.set("cursor", cursor);
+<<<<<<< HEAD
       params.set("limit", "15");
+=======
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 
       const res = await fetch(`/api/inventory?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch");
@@ -64,6 +75,7 @@ export default function InventoryGrid({
     }
   }, [cursor, isLoadingMore, search, category, brandId]);
 
+<<<<<<< HEAD
   // IntersectionObserver: triggers loadMore when 10th item or bottom sentinel comes into view
   useEffect(() => {
     const triggerEl = triggerRef.current;
@@ -84,11 +96,33 @@ export default function InventoryGrid({
 
     return () => observer.disconnect();
   }, [cursor, isLoadingMore, loadMore, items.length]);
+=======
+  // IntersectionObserver for infinite scroll
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && cursor && !isLoadingMore) {
+          loadMore();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [cursor, isLoadingMore, loadMore]);
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 
   if (items.length === 0) {
     return (
       <div
+<<<<<<< HEAD
         className="card"
+=======
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
         style={{
           display: "flex",
           flexDirection: "column",
@@ -97,6 +131,7 @@ export default function InventoryGrid({
           padding: "80px 16px",
           gap: "16px",
           color: "var(--color-text-muted)",
+<<<<<<< HEAD
           textAlign: "center",
         }}
       >
@@ -118,6 +153,16 @@ export default function InventoryGrid({
             No items found
           </p>
           <p style={{ fontSize: "14px", marginTop: "4px", color: "var(--color-text-muted)" }}>
+=======
+        }}
+      >
+        <PackageSearch size={48} strokeWidth={1} />
+        <div style={{ textAlign: "center" }}>
+          <p style={{ fontSize: "16px", fontWeight: 600, color: "var(--color-text-secondary)" }}>
+            No items found
+          </p>
+          <p style={{ fontSize: "14px", marginTop: "4px" }}>
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
             {search || category || brandId
               ? "Try adjusting your search or filter"
               : "No inventory items yet"}
@@ -133,20 +178,30 @@ export default function InventoryGrid({
       <div
         style={{
           display: "grid",
+<<<<<<< HEAD
           gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+=======
+          gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
           gap: "24px",
         }}
       >
         {items.map((item, i) => (
           <div
             key={item.id}
+<<<<<<< HEAD
             ref={i === triggerIndex ? triggerRef : undefined}
             className="animate-fade-in"
             style={{ animationDelay: `${Math.min(i % 15, 6) * 40}ms` }}
+=======
+            className="animate-fade-in"
+            style={{ animationDelay: `${Math.min(i % 12, 6) * 50}ms` }}
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
           >
             <ItemCard item={item} />
           </div>
         ))}
+<<<<<<< HEAD
 
         {/* Skeleton cards shown seamlessly inside the grid while next 15 are loading */}
         {isLoadingMore && (
@@ -164,11 +219,19 @@ export default function InventoryGrid({
       <div ref={bottomSentinelRef} style={{ height: "1px" }} />
 
       {/* Subtle bottom indicator while loading next batch */}
+=======
+      </div>
+
+      {/* Sentinel + Loading */}
+      <div ref={sentinelRef} style={{ height: "1px" }} />
+
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
       {isLoadingMore && (
         <div
           style={{
             display: "flex",
             justifyContent: "center",
+<<<<<<< HEAD
             alignItems: "center",
             padding: "24px 16px 8px",
             color: "var(--color-text-muted)",
@@ -191,15 +254,40 @@ export default function InventoryGrid({
             style={{ borderRadius: "100px", padding: "8px 20px" }}
           >
             Failed to load more — tap to retry
+=======
+            padding: "32px",
+            color: "var(--color-text-muted)",
+            gap: "8px",
+            alignItems: "center",
+            fontSize: "14px",
+          }}
+        >
+          <Loader2 size={18} className="animate-spin" />
+          Loading more…
+        </div>
+      )}
+
+      {hasError && (
+        <div style={{ textAlign: "center", padding: "24px" }}>
+          <button
+            onClick={loadMore}
+            className="btn-secondary"
+          >
+            Failed to load — retry
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
           </button>
         </div>
       )}
 
+<<<<<<< HEAD
       {/* End of list */}
+=======
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
       {!cursor && items.length > 0 && (
         <p
           style={{
             textAlign: "center",
+<<<<<<< HEAD
             padding: "36px 16px",
             color: "var(--color-text-muted)",
             fontSize: "13px",
@@ -208,6 +296,14 @@ export default function InventoryGrid({
           }}
         >
           You have viewed all {items.length} items
+=======
+            padding: "24px",
+            color: "var(--color-text-muted)",
+            fontSize: "13px",
+          }}
+        >
+          All {items.length} items loaded
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
         </p>
       )}
     </div>

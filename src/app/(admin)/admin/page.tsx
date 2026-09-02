@@ -62,23 +62,39 @@ export default async function AdminDashboard() {
       icon: Package,
       color: "var(--color-accent-text)",
       bg: "var(--color-accent-glow)",
+<<<<<<< HEAD
       border: "rgba(0, 113, 227, 0.12)",
+=======
+      border: "rgba(99, 102, 241, 0.2)",
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
     },
     {
       label: "Deleted Items",
       value: stats.deleted,
       icon: PackageX,
+<<<<<<< HEAD
       color: "#ff3b30",
       bg: "var(--color-danger-dim)",
       border: "rgba(255, 59, 48, 0.12)",
+=======
+      color: "#f87171",
+      bg: "var(--color-danger-dim)",
+      border: "rgba(239, 68, 68, 0.2)",
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
     },
     {
       label: "Added This Week",
       value: stats.recentCount,
       icon: TrendingUp,
+<<<<<<< HEAD
       color: "#34c759",
       bg: "rgba(52, 199, 89, 0.06)",
       border: "rgba(52, 199, 89, 0.12)",
+=======
+      color: "#4ade80",
+      bg: "rgba(34, 197, 94, 0.1)",
+      border: "rgba(34, 197, 94, 0.2)",
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
     },
   ];
 

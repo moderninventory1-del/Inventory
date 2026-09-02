@@ -1,9 +1,16 @@
 // src/app/(admin)/layout.tsx
+<<<<<<< HEAD
 // Admin layout — desktop sidebar + mobile bottom navigation bar
 
 import type { Metadata } from "next";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminBottomNav from "@/components/admin/AdminBottomNav";
+=======
+// Admin layout — wraps everything in MobileMenuProvider
+
+import type { Metadata } from "next";
+import AdminSidebar from "@/components/admin/AdminSidebar";
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 import { MobileMenuProvider } from "@/components/admin/MobileMenuContext";
 
 export const metadata: Metadata = {
@@ -22,7 +29,11 @@ export default function AdminLayout({
   return (
     <MobileMenuProvider>
       <div style={{ display: "flex", minHeight: "100dvh", background: "var(--color-bg-primary)" }}>
+<<<<<<< HEAD
         {/* Desktop Sidebar (visible on md+) */}
+=======
+        {/* Sidebar */}
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
         <AdminSidebar />
 
         {/* Main content */}
@@ -34,6 +45,7 @@ export default function AdminLayout({
             minWidth: 0,
           }}
         >
+<<<<<<< HEAD
           <main className="admin-main-content">
             {children}
           </main>
@@ -57,6 +69,13 @@ export default function AdminLayout({
           }
         }
       `}</style>
+=======
+          <main style={{ flex: 1, padding: "24px 20px", maxWidth: "1200px" }}>
+            {children}
+          </main>
+        </div>
+      </div>
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
     </MobileMenuProvider>
   );
 }

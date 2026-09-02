@@ -8,6 +8,15 @@ datasource db {
   provider = "postgresql"
 }
 
+<<<<<<< HEAD
+=======
+enum ItemCategory {
+  CARD
+  SUPPLY
+  INVERTER
+}
+
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 model Brand {
   id        String          @id @default(cuid())
   name      String          @unique
@@ -15,18 +24,25 @@ model Brand {
   items     InventoryItem[]
 }
 
+<<<<<<< HEAD
 model Category {
   id        String          @id @default(cuid())
   name      String          @unique
   createdAt DateTime        @default(now())
 }
 
+=======
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 model InventoryItem {
   id          String       @id @default(cuid())
   modelNumber String
   brandId     String
   brand       Brand        @relation(fields: [brandId], references: [id])
+<<<<<<< HEAD
   category    String
+=======
+  category    ItemCategory
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
   boxLocation String?      // admin-only field
   description String?      @db.Text
   frontImage  String       // Cloudinary secure URL

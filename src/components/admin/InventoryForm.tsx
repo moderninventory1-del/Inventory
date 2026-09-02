@@ -7,15 +7,24 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Loader2, Save } from "lucide-react";
 import ImageUpload from "./ImageUpload";
+<<<<<<< HEAD
 import { DEFAULT_CATEGORIES } from "@/types";
 import type { InventoryItem } from "@/types";
 import type { ActionResult } from "@/app/actions/inventory";
 
 import { createBrand, createCategory } from "@/app/actions/inventory";
+=======
+import { ITEM_CATEGORIES } from "@/types";
+import type { InventoryItem } from "@/types";
+import type { ActionResult } from "@/app/actions/inventory";
+
+import { createBrand } from "@/app/actions/inventory";
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 
 interface InventoryFormProps {
   item?: InventoryItem;
   brands: { id: string; name: string }[];
+<<<<<<< HEAD
   categories?: { id: string; name: string }[];
   action: (formData: FormData) => Promise<ActionResult | void>;
 }
@@ -26,6 +35,12 @@ export default function InventoryForm({
   categories: initialCategories,
   action,
 }: InventoryFormProps) {
+=======
+  action: (formData: FormData) => Promise<ActionResult | void>;
+}
+
+export default function InventoryForm({ item, brands: initialBrands, action }: InventoryFormProps) {
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [brands, setBrands] = useState(initialBrands);
@@ -33,6 +48,7 @@ export default function InventoryForm({
   const [newBrandName, setNewBrandName] = useState("");
   const [isSavingBrand, setIsSavingBrand] = useState(false);
   const [selectedBrandId, setSelectedBrandId] = useState(item?.brandId ?? "");
+<<<<<<< HEAD
 
   const [categories, setCategories] = useState<{ id: string; name: string }[]>(
     initialCategories && initialCategories.length > 0
@@ -43,6 +59,8 @@ export default function InventoryForm({
   const [newCategoryName, setNewCategoryName] = useState("");
   const [isSavingCategory, setIsSavingCategory] = useState(false);
 
+=======
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
   const [categoryId, setCategoryId] = useState(item?.category ?? "");
   const [lastEntry, setLastEntry] = useState<Record<string, string> | null>(null);
   const isEditing = !!item;
@@ -132,6 +150,7 @@ export default function InventoryForm({
     }
   }
 
+<<<<<<< HEAD
   async function handleAddCategory() {
     if (!newCategoryName.trim()) return;
     setIsSavingCategory(true);
@@ -155,6 +174,8 @@ export default function InventoryForm({
     }
   }
 
+=======
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
   return (
     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
       {/* Basic Info */}
@@ -255,6 +276,7 @@ export default function InventoryForm({
             />
           </div>
 
+<<<<<<< HEAD
           <div style={{ display: "flex", flexDirection: "column" }}>
             <label htmlFor="category" className="input-label">
               Category <span style={{ color: "var(--color-danger)" }}>*</span>
@@ -322,6 +344,28 @@ export default function InventoryForm({
                 </button>
               </div>
             )}
+=======
+          <div>
+            <label htmlFor="category" className="input-label">
+              Category <span style={{ color: "var(--color-danger)" }}>*</span>
+            </label>
+            <select
+              id="category"
+              name="category"
+              className="input-field"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              required
+              disabled={isSubmitting}
+            >
+              <option value="">Select category…</option>
+              {ITEM_CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
           </div>
 
           <div>

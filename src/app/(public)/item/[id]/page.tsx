@@ -129,7 +129,11 @@ export default async function ItemDetailPage({ params }: PageProps) {
                   position: "absolute",
                   bottom: "12px",
                   left: "12px",
+<<<<<<< HEAD
                   background: "rgba(0,0,0,0.6)",
+=======
+                  background: "rgba(0,0,0,0.7)",
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
                   backdropFilter: "blur(8px)",
                   borderRadius: "6px",
                   padding: "4px 10px",
@@ -221,7 +225,11 @@ export default async function ItemDetailPage({ params }: PageProps) {
             style={{
               padding: "20px",
               background: "var(--color-accent-glow)",
+<<<<<<< HEAD
               borderColor: "rgba(0, 113, 227, 0.15)",
+=======
+              borderColor: "rgba(99, 102, 241, 0.2)",
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
               textAlign: "center",
             }}
           >

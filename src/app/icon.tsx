@@ -16,7 +16,11 @@ export default function Icon() {
         style={{
           width: 32,
           height: 32,
+<<<<<<< HEAD
           background: "#0071e3",
+=======
+          background: "#0a0a0f",
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
           borderRadius: 7,
           display: "flex",
           alignItems: "center",
@@ -31,7 +35,11 @@ export default function Icon() {
             width: 22,
             height: 22,
             borderRadius: "50%",
+<<<<<<< HEAD
             background: "rgba(255,255,255,0.2)",
+=======
+            background: "rgba(99,102,241,0.18)",
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
             display: "flex",
           }}
         />
@@ -50,7 +58,11 @@ export default function Icon() {
               fontFamily: "sans-serif",
               fontWeight: 800,
               fontSize: 13,
+<<<<<<< HEAD
               color: "#ffffff",
+=======
+              color: "#818cf8",
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
               letterSpacing: "-0.5px",
               lineHeight: 1,
             }}
@@ -68,7 +80,11 @@ export default function Icon() {
             width: 3,
             height: 3,
             borderRadius: "50%",
+<<<<<<< HEAD
             background: "rgba(255,255,255,0.5)",
+=======
+            background: "#6366f1",
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
             display: "flex",
           }}
         />

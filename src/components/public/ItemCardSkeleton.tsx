@@ -5,7 +5,11 @@ export default function ItemCardSkeleton() {
   return (
     <div
       className="card"
+<<<<<<< HEAD
       style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}
+=======
+      style={{ overflow: "hidden", height: "320px", display: "flex", flexDirection: "column" }}
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
     >
       {/* Image skeleton */}
       <div

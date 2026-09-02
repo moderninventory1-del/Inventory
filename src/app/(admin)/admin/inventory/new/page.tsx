@@ -20,10 +20,16 @@ export default async function NewInventoryItemPage() {
   const session = await getServerSession(authOptions);
   if (!session || session.user.role !== "admin") redirect("/login");
 
+<<<<<<< HEAD
   const [brands, categories] = await Promise.all([
     prisma.brand.findMany({ orderBy: { name: "asc" } }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
   ]);
+=======
+  const brands = await prisma.brand.findMany({
+    orderBy: { name: "asc" },
+  });
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 
   return (
     <div style={{ maxWidth: "800px" }}>
@@ -48,7 +54,11 @@ export default async function NewInventoryItemPage() {
         </p>
       </div>
 
+<<<<<<< HEAD
       <InventoryForm action={createInventoryItem} brands={brands} categories={categories} />
+=======
+      <InventoryForm action={createInventoryItem} brands={brands} />
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
     </div>
   );
 }

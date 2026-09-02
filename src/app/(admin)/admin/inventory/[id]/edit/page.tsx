@@ -40,10 +40,16 @@ export default async function EditInventoryItemPage({ params }: PageProps) {
 
   if (!item) notFound();
 
+<<<<<<< HEAD
   const [brands, categories] = await Promise.all([
     prisma.brand.findMany({ orderBy: { name: "asc" } }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
   ]);
+=======
+  const brands = await prisma.brand.findMany({
+    orderBy: { name: "asc" },
+  });
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 
   // Bind the id to the action
   const updateAction = updateInventoryItem.bind(null, id);
@@ -71,7 +77,11 @@ export default async function EditInventoryItemPage({ params }: PageProps) {
         </p>
       </div>
 
+<<<<<<< HEAD
       <InventoryForm item={item} brands={brands} categories={categories} action={updateAction} />
+=======
+      <InventoryForm item={item} brands={brands} action={updateAction} />
+>>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
     </div>
   );
 }
