@@ -11,6 +11,7 @@ import { Tv2, ChevronDown, ChevronUp, Pencil, Trash2, RotateCcw, Loader2, Eye, M
 import { deleteInventoryItem, restoreInventoryItem } from "@/app/actions/inventory";
 import type { InventoryItem } from "@/types";
 import { formatDate } from "@/lib/utils";
+import SlideToDeleteModal from "@/components/admin/SlideToDeleteModal";
 
 interface AdminItemCardProps {
   item: InventoryItem;
@@ -22,16 +23,22 @@ export default function AdminItemCard({ item, showDeleted = false }: AdminItemCa
   const [isPending, startTransition] = useTransition();
   const [localDeleted, setLocalDeleted] = useState(item.isDeleted);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   function handleDelete() {
-    if (!confirm(`Delete "${item.brand.name} ${item.modelNumber}"? This can be restored later.`)) return;
+    setIsDeleteModalOpen(true);
+  }
+
+  function handleConfirmDelete() {
     startTransition(async () => {
       const result = await deleteInventoryItem(item.id);
       if (result.success) {
         toast.success("Item moved to trash");
         setLocalDeleted(true);
+        setIsDeleteModalOpen(false);
       } else {
         toast.error(result.error);
+        setIsDeleteModalOpen(false);
       }
     });
   }
@@ -255,6 +262,15 @@ export default function AdminItemCard({ item, showDeleted = false }: AdminItemCa
           </div>
         </div>
       )}
+
+      {/* Premium Slide-To-Delete Confirmation Modal */}
+      <SlideToDeleteModal
+        isOpen={isDeleteModalOpen}
+        item={item}
+        isDeleting={isPending}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setIsDeleteModalOpen(false)}
+      />
     </article>
   );
 }

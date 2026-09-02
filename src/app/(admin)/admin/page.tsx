@@ -14,39 +14,54 @@ export const metadata: Metadata = {
   title: "Dashboard",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 15; // Cache dashboard for 15s to absorb rapid tab switching
 
 async function getStats() {
-  const [total, deleted, recentCount] = await Promise.all([
-    prisma.inventoryItem.count({ where: { isDeleted: false } }),
-    prisma.inventoryItem.count({ where: { isDeleted: true } }),
-    prisma.inventoryItem.count({
-      where: {
-        isDeleted: false,
-        createdAt: {
-          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-        },
-      },
-    }),
-  ]);
+  try {
+    const rows = await prisma.$queryRaw<
+      { total: bigint | number; deleted: bigint | number; recent: bigint | number }[]
+    >`
+      SELECT
+        COUNT(*) FILTER (WHERE "isDeleted" = false) as total,
+        COUNT(*) FILTER (WHERE "isDeleted" = true) as deleted,
+        COUNT(*) FILTER (WHERE "isDeleted" = false AND "createdAt" >= NOW() - INTERVAL '7 days') as recent
+      FROM "InventoryItem";
+    `;
 
-  return { total, deleted, recentCount };
+    if (rows && rows.length > 0) {
+      return {
+        total: Number(rows[0].total || 0),
+        deleted: Number(rows[0].deleted || 0),
+        recentCount: Number(rows[0].recent || 0),
+      };
+    }
+  } catch (error) {
+    console.error("[Dashboard] Failed to fetch stats:", error);
+  }
+
+  // Graceful fallback if database connection is momentarily congested
+  return { total: 0, deleted: 0, recentCount: 0 };
 }
 
 async function getRecentItems() {
-  return prisma.inventoryItem.findMany({
-    where: { isDeleted: false },
-    orderBy: { createdAt: "desc" },
-    take: 5,
-    select: {
-      id: true,
-      brand: { select: { id: true, name: true } },
-      modelNumber: true,
-      category: true,
-      frontImage: true,
-      createdAt: true,
-    },
-  });
+  try {
+    return await prisma.inventoryItem.findMany({
+      where: { isDeleted: false },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      select: {
+        id: true,
+        brand: { select: { id: true, name: true } },
+        modelNumber: true,
+        category: true,
+        frontImage: true,
+        createdAt: true,
+      },
+    });
+  } catch (error) {
+    console.error("[Dashboard] Failed to fetch recent items:", error);
+    return [];
+  }
 }
 
 export default async function AdminDashboard() {
