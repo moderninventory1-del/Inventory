@@ -13,6 +13,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { PlusCircle } from "lucide-react";
+import { searchAdminInventory } from "@/lib/search";
 import { ITEM_CATEGORIES, type InventoryItem, type PaginatedResponse } from "@/types";
 import MobileMenuButton from "@/components/admin/MobileMenuButton";
 
@@ -25,46 +26,24 @@ export const dynamic = "force-dynamic";
 const LIMIT = 15;
 
 interface PageProps {
-  searchParams: Promise<{ status?: string; search?: string; category?: string; brand?: string }>;
+  searchParams: Promise<{ status?: string; search?: string; category?: string; brand?: string; sort?: string }>;
 }
 
 async function getInitialAdminInventory(
   status: string,
   search: string,
   category: string,
-  brandId: string
+  brandId: string,
+  sort: "latest" | "oldest" = "latest"
 ): Promise<PaginatedResponse<InventoryItem>> {
-  const where = {
-    isDeleted:
-      status === "deleted" ? true
-      : status === "active" ? false
-      : undefined,
-    ...(category ? { category: category as any } : {}),
-    ...(brandId  ? { brandId }                  : {}),
-    ...(search
-      ? {
-          OR: [
-            { id:          { contains: search, mode: "insensitive" as const } },
-            { brand:       { name:        { contains: search, mode: "insensitive" as const } } },
-            { modelNumber: { contains: search, mode: "insensitive" as const } },
-            { description: { contains: search, mode: "insensitive" as const } },
-          ],
-        }
-      : {}),
-  };
-
-  const rawItems = await prisma.inventoryItem.findMany({
-    where,
-    take: LIMIT + 1,
-    orderBy: { createdAt: "desc" },
-    include: { brand: true },
+  return searchAdminInventory({
+    status,
+    search,
+    category,
+    brandId,
+    sort,
+    limit: LIMIT,
   });
-
-  const hasMore    = rawItems.length > LIMIT;
-  const items      = hasMore ? rawItems.slice(0, LIMIT) : rawItems;
-  const nextCursor = hasMore ? items[items.length - 1].id : null;
-
-  return { items: items as unknown as InventoryItem[], nextCursor };
 }
 
 // Separate streaming server component so Suspense instantly shows skeleton fallback on filter changes
@@ -73,13 +52,15 @@ async function AdminInventoryList({
   search,
   category,
   brandId,
+  sort,
 }: {
   status: string;
   search: string;
   category: string;
   brandId: string;
+  sort: "latest" | "oldest";
 }) {
-  const initialData = await getInitialAdminInventory(status, search, category, brandId);
+  const initialData = await getInitialAdminInventory(status, search, category, brandId, sort);
   const showDeleted = status === "deleted" || status === "all";
 
   return (
@@ -89,6 +70,7 @@ async function AdminInventoryList({
       category={category}
       brandId={brandId}
       status={status}
+      sort={sort}
       showDeleted={showDeleted}
     />
   );
@@ -121,6 +103,7 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
   const search   = params.search   ?? "";
   const category = params.category ?? "";
   const brandId  = params.brand    ?? "";
+  const sort: "latest" | "oldest" = params.sort === "oldest" ? "oldest" : "latest";
 
   // Build shared where for count query
   const countWhere = {
@@ -192,7 +175,7 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
         {/* Infinite-scroll grid with instant streaming skeleton fallback */}
         <div className="inventory-grid-area">
           <Suspense
-            key={`${status}-${search}-${category}-${brandId}`}
+            key={`${status}-${search}-${category}-${brandId}-${sort}`}
             fallback={<AdminInventorySkeleton />}
           >
             <AdminInventoryList
@@ -200,6 +183,7 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
               search={search}
               category={category}
               brandId={brandId}
+              sort={sort}
             />
           </Suspense>
         </div>

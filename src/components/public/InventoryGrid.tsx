@@ -13,6 +13,7 @@ interface InventoryGridProps {
   search: string;
   category: string;
   brandId: string;
+  sort?: string;
 }
 
 export default function InventoryGrid({
@@ -20,6 +21,7 @@ export default function InventoryGrid({
   search,
   category,
   brandId,
+  sort,
 }: InventoryGridProps) {
   const [items, setItems] = useState<PublicInventoryItem[]>(initialData.items);
   const [cursor, setCursor] = useState<string | null>(initialData.nextCursor);
@@ -48,6 +50,7 @@ export default function InventoryGrid({
       if (search) params.set("search", search);
       if (category) params.set("category", category);
       if (brandId) params.set("brand", brandId);
+      if (sort) params.set("sort", sort);
       if (cursor) params.set("cursor", cursor);
       params.set("limit", "15");
 
@@ -62,7 +65,7 @@ export default function InventoryGrid({
     } finally {
       setIsLoadingMore(false);
     }
-  }, [cursor, isLoadingMore, search, category, brandId]);
+  }, [cursor, isLoadingMore, search, category, brandId, sort]);
 
   // IntersectionObserver: triggers loadMore when 10th item or bottom sentinel comes into view
   useEffect(() => {

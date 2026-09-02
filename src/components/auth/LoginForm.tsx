@@ -33,14 +33,13 @@ export default function LoginForm() {
 
       if (result?.error) {
         toast.error("Invalid credentials. Please try again.");
+        setIsLoading(false);
       } else {
         toast.success("Welcome back!");
-        router.push("/admin");
-        router.refresh();
+        window.location.href = "/admin";
       }
     } catch {
       toast.error("Something went wrong. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   }

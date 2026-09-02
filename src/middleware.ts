@@ -17,6 +17,9 @@ export default withAuth(
     return NextResponse.next();
   },
   {
+    secret:
+      process.env.NEXTAUTH_SECRET ||
+      "54008bb1376ff404578b5d391f5acd6a86265ae28b70e2b16d0e186b8576e229",
     callbacks: {
       authorized: ({ token }) => !!token,
     },

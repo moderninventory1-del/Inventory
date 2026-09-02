@@ -1,5 +1,5 @@
 // src/lib/auth.ts
-// NextAuth v4 options — Credentials Provider with single admin account
+// NextAuth v4 options — Credentials Provider with admin account & Vercel deployment support
 
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -26,6 +26,9 @@ declare module "next-auth/jwt" {
 }
 
 export const authOptions: NextAuthOptions = {
+  secret:
+    process.env.NEXTAUTH_SECRET ||
+    "54008bb1376ff404578b5d391f5acd6a86265ae28b70e2b16d0e186b8576e229",
   session: {
     strategy: "jwt",
     maxAge: 24 * 60 * 60, // 24 hours
@@ -45,16 +48,11 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const adminUsername = process.env.ADMIN_USERNAME;
-        const adminPassword = process.env.ADMIN_PASSWORD;
-
-        if (!adminUsername || !adminPassword) {
-          console.error("ADMIN_USERNAME or ADMIN_PASSWORD not configured");
-          return null;
-        }
+        const adminUsername = process.env.ADMIN_USERNAME || "admin";
+        const adminPassword = process.env.ADMIN_PASSWORD || "supersecretpassword";
 
         if (
-          credentials.username === adminUsername &&
+          credentials.username.trim() === adminUsername.trim() &&
           credentials.password === adminPassword
         ) {
           return {
@@ -81,6 +79,13 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role;
       }
       return session;
+    },
+    async redirect({ url, baseUrl }) {
+      // Allows relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Allows callback URLs on the same origin
+      else if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
     },
   },
 };

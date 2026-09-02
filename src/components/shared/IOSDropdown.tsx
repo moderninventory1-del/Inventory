@@ -1,8 +1,9 @@
 "use client";
 // src/components/shared/IOSDropdown.tsx
-// Premium iOS-inspired filter dropdown — bottom sheet on mobile, popover menu on desktop
+// Premium iOS-inspired filter dropdown — Portal-rendered bottom sheet on mobile, smart-boundary popover on desktop
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown, Check, Search, X } from "lucide-react";
 
 export interface IOSDropdownOption {
@@ -30,23 +31,37 @@ export default function IOSDropdown({
   const [isOpen, setIsOpen] = useState(false);
   const [searchFilter, setSearchFilter] = useState("");
   const [isMobile, setIsMobile] = useState(false);
+  const [alignRight, setAlignRight] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Detect mobile screen (< 768px)
+  // Client mount check + initial screen detection
   useEffect(() => {
-    const checkMobile = () => {
+    setMounted(true);
+    const checkScreen = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    checkScreen();
+    window.addEventListener("resize", checkScreen);
+    return () => window.removeEventListener("resize", checkScreen);
   }, []);
+
+  // Lock body scroll when mobile sheet is open
+  useEffect(() => {
+    if (isOpen && isMobile) {
+      const original = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = original;
+      };
+    }
+  }, [isOpen, isMobile]);
 
   // Close desktop popover on outside click or Escape
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || isMobile) return;
 
     const handleOutsideClick = (e: MouseEvent) => {
       if (
@@ -78,6 +93,21 @@ export default function IOSDropdown({
     }
   }, [isOpen]);
 
+  const handleToggle = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (!isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      // If trigger is within 260px of the right viewport edge, flip popover to align right
+      setAlignRight(rect.left + 260 > window.innerWidth);
+    }
+    setIsOpen((prev) => !prev);
+  };
+
   const defaultAll = allLabel ?? `All ${label}s`;
   const selectedOption = options.find((o) => o.value === selectedValue);
   const isSelected = Boolean(selectedValue);
@@ -98,7 +128,7 @@ export default function IOSDropdown({
       {/* ── Trigger Pill Button ── */}
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         className="ios-dropdown-trigger"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
@@ -151,14 +181,16 @@ export default function IOSDropdown({
           style={{
             position: "absolute",
             top: "calc(100% + 8px)",
-            left: 0,
-            zIndex: 60,
+            left: alignRight ? "auto" : 0,
+            right: alignRight ? 0 : "auto",
+            zIndex: 100,
             minWidth: "220px",
-            maxWidth: "320px",
+            maxWidth: "calc(100vw - 32px)",
+            width: "max-content",
             background: "#ffffff",
             borderRadius: "var(--radius-md)",
             border: "1px solid var(--color-border)",
-            boxShadow: "0 12px 36px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.04)",
+            boxShadow: "0 12px 36px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04)",
             padding: "6px",
             animation: "ios-popover-in 160ms cubic-bezier(0.16, 1, 0.3, 1) forwards",
           }}
@@ -259,14 +291,14 @@ export default function IOSDropdown({
         </div>
       )}
 
-      {/* ── Mobile iOS Bottom Sheet Popup (< 768px) ── */}
-      {isOpen && isMobile && (
+      {/* ── Mobile iOS Bottom Sheet Popup (< 768px via Portal) ── */}
+      {isOpen && isMobile && mounted && createPortal(
         <div
           style={{
             position: "fixed",
             inset: 0,
-            zIndex: 150,
-            background: "rgba(0, 0, 0, 0.45)",
+            zIndex: 9999,
+            background: "rgba(0, 0, 0, 0.5)",
             backdropFilter: "blur(6px)",
             WebkitBackdropFilter: "blur(6px)",
             display: "flex",
@@ -282,17 +314,17 @@ export default function IOSDropdown({
             className="ios-mobile-sheet"
             style={{
               width: "100%",
-              maxWidth: "500px",
+              maxWidth: "520px",
               margin: "0 auto",
               background: "#ffffff",
-              borderTopLeftRadius: "24px",
-              borderTopRightRadius: "24px",
+              borderTopLeftRadius: "22px",
+              borderTopRightRadius: "22px",
               padding: "16px 20px calc(24px + env(safe-area-inset-bottom, 16px))",
-              boxShadow: "0 -8px 32px rgba(0, 0, 0, 0.12)",
+              boxShadow: "0 -8px 36px rgba(0, 0, 0, 0.16)",
               display: "flex",
               flexDirection: "column",
               gap: "14px",
-              maxHeight: "82vh",
+              maxHeight: "84vh",
               animation: "ios-sheet-up 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards",
             }}
             role="dialog"
@@ -304,7 +336,7 @@ export default function IOSDropdown({
                 width: "36px",
                 height: "4px",
                 borderRadius: "2px",
-                background: "rgba(0, 0, 0, 0.18)",
+                background: "rgba(0, 0, 0, 0.2)",
                 alignSelf: "center",
               }}
             />
@@ -320,10 +352,10 @@ export default function IOSDropdown({
               }}
             >
               <div>
-                <h3 style={{ fontSize: "17px", fontWeight: 700, letterSpacing: "-0.02em" }}>
+                <h3 style={{ fontSize: "17px", fontWeight: 700, letterSpacing: "-0.02em", margin: 0 }}>
                   Select {label}
                 </h3>
-                <p style={{ fontSize: "12px", color: "var(--color-text-muted)" }}>
+                <p style={{ fontSize: "12px", color: "var(--color-text-muted)", margin: "2px 0 0 0" }}>
                   Choose a {label.toLowerCase()} to filter inventory
                 </p>
               </div>
@@ -332,7 +364,7 @@ export default function IOSDropdown({
                 type="button"
                 onClick={() => setIsOpen(false)}
                 style={{
-                  background: "rgba(0,0,0,0.05)",
+                  background: "rgba(0,0,0,0.06)",
                   border: "none",
                   borderRadius: "50%",
                   width: "30px",
@@ -385,7 +417,7 @@ export default function IOSDropdown({
             <div
               style={{
                 overflowY: "auto",
-                maxHeight: "50vh",
+                maxHeight: "52vh",
                 display: "flex",
                 flexDirection: "column",
                 gap: "4px",
@@ -452,7 +484,8 @@ export default function IOSDropdown({
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <style>{`

@@ -1,10 +1,9 @@
 // src/app/api/inventory/route.ts
-// Public inventory API — cursor-based pagination, search, filter
+// Public inventory API — cursor-based pagination, forward subsequence search, model-first ranking
 // NEVER exposes boxLocation, isDeleted, or deleted items
 
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import type { PaginatedResponse, PublicInventoryItem } from "@/types";
+import { searchPublicInventory } from "@/lib/search";
 
 export const dynamic = "force-dynamic";
 
@@ -18,56 +17,19 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const search = searchParams.get("search")?.trim() ?? "";
     const category = searchParams.get("category")?.trim() ?? "";
     const brandId = searchParams.get("brand")?.trim() ?? "";
+    const sort = searchParams.get("sort") === "oldest" ? "oldest" : "latest";
     const cursor = searchParams.get("cursor") ?? undefined;
     const limitRaw = parseInt(searchParams.get("limit") ?? String(DEFAULT_LIMIT));
     const limit = Math.min(Math.max(1, limitRaw), MAX_LIMIT);
 
-    // Build where clause — only active (non-deleted) items
-    const where = {
-      isDeleted: false,
-      ...(category ? { category: category as any } : {}),
-      ...(brandId ? { brandId } : {}),
-      ...(search
-        ? {
-            OR: [
-              { brand: { name: { contains: search, mode: "insensitive" as const } } },
-              { modelNumber: { contains: search, mode: "insensitive" as const } },
-              { description: { contains: search, mode: "insensitive" as const } },
-            ],
-          }
-        : {}),
-    };
-
-    // Fetch limit+1 to determine if there's a next page
-    const rawItems = await prisma.inventoryItem.findMany({
-      where,
-      take: limit + 1,
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        modelNumber: true,
-        brand: { select: { id: true, name: true } },
-        category: true,
-        description: true,
-        frontImage: true,
-        backImage: true,
-        createdAt: true,
-        updatedAt: true,
-        // boxLocation INTENTIONALLY excluded
-        // isDeleted INTENTIONALLY excluded
-        // deletedAt INTENTIONALLY excluded
-      },
+    const response = await searchPublicInventory({
+      search,
+      category,
+      brandId,
+      sort,
+      cursor,
+      limit,
     });
-
-    const hasMore = rawItems.length > limit;
-    const items = hasMore ? rawItems.slice(0, limit) : rawItems;
-    const nextCursor = hasMore ? items[items.length - 1].id : null;
-
-    const response: PaginatedResponse<PublicInventoryItem> = {
-      items: items as PublicInventoryItem[],
-      nextCursor,
-    };
 
     return NextResponse.json(response);
   } catch (error) {

@@ -1,12 +1,11 @@
 // src/app/api/admin/inventory/route.ts
-// Admin-only inventory API — cursor-based pagination, full fields including boxLocation
+// Admin-only inventory API — cursor-based pagination, forward subsequence search, model-first ranking
 // Protected: returns 401 if caller is not an authenticated admin
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import type { PaginatedResponse, InventoryItem } from "@/types";
+import { searchAdminInventory } from "@/lib/search";
 
 export const dynamic = "force-dynamic";
 
@@ -27,47 +26,20 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const category = searchParams.get("category")?.trim() ?? "";
     const brandId  = searchParams.get("brand")?.trim()    ?? "";
     const status   = searchParams.get("status")?.trim()   ?? "active"; // active | deleted | all
+    const sort     = searchParams.get("sort") === "oldest" ? "oldest" : "latest";
     const cursor   = searchParams.get("cursor")            ?? undefined;
     const limitRaw = parseInt(searchParams.get("limit")   ?? String(DEFAULT_LIMIT));
     const limit    = Math.min(Math.max(1, limitRaw), MAX_LIMIT);
 
-    // Build where clause
-    const where = {
-      isDeleted:
-        status === "deleted" ? true
-        : status === "active" ? false
-        : undefined,
-      ...(category ? { category: category as any } : {}),
-      ...(brandId  ? { brandId }                  : {}),
-      ...(search
-        ? {
-            OR: [
-              { id:          { contains: search, mode: "insensitive" as const } },
-              { brand:       { name:        { contains: search, mode: "insensitive" as const } } },
-              { modelNumber: { contains: search, mode: "insensitive" as const } },
-              { description: { contains: search, mode: "insensitive" as const } },
-            ],
-          }
-        : {}),
-    };
-
-    // Fetch limit+1 to detect next page
-    const rawItems = await prisma.inventoryItem.findMany({
-      where,
-      take: limit + 1,
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-      orderBy: { createdAt: "desc" },
-      include: { brand: true },
+    const response = await searchAdminInventory({
+      search,
+      category,
+      brandId,
+      status,
+      sort,
+      cursor,
+      limit,
     });
-
-    const hasMore    = rawItems.length > limit;
-    const items      = hasMore ? rawItems.slice(0, limit) : rawItems;
-    const nextCursor = hasMore ? items[items.length - 1].id : null;
-
-    const response: PaginatedResponse<InventoryItem> = {
-      items: items as unknown as InventoryItem[],
-      nextCursor,
-    };
 
     return NextResponse.json(response);
   } catch (error) {

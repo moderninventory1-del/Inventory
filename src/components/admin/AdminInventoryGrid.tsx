@@ -15,6 +15,7 @@ interface AdminInventoryGridProps {
   brandId: string;
   status: string;
   showDeleted: boolean;
+  sort?: string;
 }
 
 export default function AdminInventoryGrid({
@@ -24,6 +25,7 @@ export default function AdminInventoryGrid({
   brandId,
   status,
   showDeleted,
+  sort,
 }: AdminInventoryGridProps) {
   const [items, setItems]               = useState<InventoryItem[]>(initialData.items);
   const [cursor, setCursor]             = useState<string | null>(initialData.nextCursor);
@@ -53,6 +55,7 @@ export default function AdminInventoryGrid({
       if (category) params.set("category", category);
       if (brandId)  params.set("brand",    brandId);
       if (status)   params.set("status",   status);
+      if (sort)     params.set("sort",     sort);
       if (cursor)   params.set("cursor",   cursor);
       params.set("limit", "15");
 
@@ -67,7 +70,7 @@ export default function AdminInventoryGrid({
     } finally {
       setIsLoadingMore(false);
     }
-  }, [cursor, isLoadingMore, search, category, brandId, status]);
+  }, [cursor, isLoadingMore, search, category, brandId, status, sort]);
 
   // IntersectionObserver: triggers loadMore when 10th item or bottom sentinel comes into view
   useEffect(() => {

@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import InventoryGrid from "@/components/public/InventoryGrid";
 import ItemCardSkeleton from "@/components/public/ItemCardSkeleton";
 import PublicPageHeader from "@/components/public/PublicPageHeader";
+import { searchPublicInventory } from "@/lib/search";
 import { ITEM_CATEGORIES, type PaginatedResponse, type PublicInventoryItem } from "@/types";
 import type { Metadata } from "next";
 
@@ -22,72 +23,36 @@ export const revalidate = 60;
 const LIMIT = 15;
 
 interface PageProps {
-  searchParams: Promise<{ search?: string; category?: string; brand?: string }>;
+  searchParams: Promise<{ search?: string; category?: string; brand?: string; sort?: string }>;
 }
 
 async function getInitialInventory(
   search: string,
   category: string,
-  brandId: string
+  brandId: string,
+  sort: "latest" | "oldest" = "latest"
 ): Promise<PaginatedResponse<PublicInventoryItem>> {
-  const where = {
-    isDeleted: false,
-    ...(category ? { category: category as any } : {}),
-    ...(brandId ? { brandId } : {}),
-    ...(search
-      ? {
-          OR: [
-            { id: { contains: search, mode: "insensitive" as const } },
-            { brand: { name: { contains: search, mode: "insensitive" as const } } },
-            { modelNumber: { contains: search, mode: "insensitive" as const } },
-            { description: { contains: search, mode: "insensitive" as const } },
-          ],
-        }
-      : {}),
-  };
-
-  const [total, items] = await Promise.all([
-    prisma.inventoryItem.count({ where }),
-    prisma.inventoryItem.findMany({
-      where,
-      take: LIMIT + 1,
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        modelNumber: true,
-        brandId: true,
-        brand: { select: { id: true, name: true } },
-        category: true,
-        description: true,
-        frontImage: true,
-        backImage: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    }),
-  ]);
-
-  const hasMore = items.length > LIMIT;
-  const returnedItems = hasMore ? items.slice(0, LIMIT) : items;
-  const nextCursor = hasMore ? returnedItems[returnedItems.length - 1].id : null;
-
-  return {
-    items: returnedItems,
-    nextCursor,
-    total,
-  };
+  return searchPublicInventory({
+    search,
+    category,
+    brandId,
+    sort,
+    limit: LIMIT,
+  });
 }
 
 async function PublicInventoryList({
   search,
   category,
   brandId,
+  sort,
 }: {
   search: string;
   category: string;
   brandId: string;
+  sort: "latest" | "oldest";
 }) {
-  const initialData = await getInitialInventory(search, category, brandId);
+  const initialData = await getInitialInventory(search, category, brandId, sort);
 
   return (
     <InventoryGrid
@@ -95,6 +60,7 @@ async function PublicInventoryList({
       search={search}
       category={category}
       brandId={brandId}
+      sort={sort}
     />
   );
 }
@@ -122,6 +88,7 @@ export default async function PublicInventoryPage({ searchParams }: PageProps) {
   const search = params.search ?? "";
   const category = params.category ?? "";
   const brandId = params.brand ?? "";
+  const sort: "latest" | "oldest" = params.sort === "oldest" ? "oldest" : "latest";
 
   const brands = await prisma.brand.findMany({
     orderBy: { name: "asc" },
@@ -138,13 +105,14 @@ export default async function PublicInventoryPage({ searchParams }: PageProps) {
       {/* ── 3. Inventory grid with instant streaming skeleton fallback ── */}
       <div className="inventory-grid-area">
         <Suspense
-          key={`${search}-${category}-${brandId}`}
+          key={`${search}-${category}-${brandId}-${sort}`}
           fallback={<PublicInventorySkeleton />}
         >
           <PublicInventoryList
             search={search}
             category={category}
             brandId={brandId}
+            sort={sort}
           />
         </Suspense>
       </div>

@@ -4,7 +4,7 @@
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import { Search, X, Loader2, Tag, Tv2, Filter, RotateCcw } from "lucide-react";
+import { Search, X, Loader2, Tag, Tv2, Filter, RotateCcw, ArrowUpDown } from "lucide-react";
 import { ITEM_CATEGORIES } from "@/types";
 import IOSDropdown from "./IOSDropdown";
 
@@ -37,12 +37,16 @@ export default function SearchFilterBar({
   const urlBrand = searchParams.get("brand") ?? "";
   const urlStatus = searchParams.get("status") ?? "active";
   const urlSearch = searchParams.get("search") ?? "";
+  const urlSort = searchParams.get("sort") ?? "latest";
 
   // 0ms Optimistic UI state
   const [selectedCategory, setSelectedCategory] = useState(urlCategory);
   const [selectedBrand, setSelectedBrand] = useState(urlBrand);
   const [selectedStatus, setSelectedStatus] = useState(urlStatus);
   const [searchValue, setSearchValue] = useState(urlSearch);
+  const [currentSort, setCurrentSort] = useState<"latest" | "oldest">(
+    urlSort === "oldest" ? "oldest" : "latest"
+  );
 
   // Sync state if URL changes externally
   useEffect(() => {
@@ -60,6 +64,10 @@ export default function SearchFilterBar({
   useEffect(() => {
     setSearchValue(urlSearch);
   }, [urlSearch]);
+
+  useEffect(() => {
+    setCurrentSort(urlSort === "oldest" ? "oldest" : "latest");
+  }, [urlSort]);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
@@ -89,12 +97,12 @@ export default function SearchFilterBar({
     [pathname, router, searchParams]
   );
 
-  // Auto-debounce search while typing (350ms)
+  // Auto-debounce search: wait 1 second of inactivity after typing before searching
   useEffect(() => {
     if (searchValue === urlSearch) return;
     const timer = setTimeout(() => {
       updateParams({ search: searchValue.trim() });
-    }, 350);
+    }, 1000);
     return () => clearTimeout(timer);
   }, [searchValue, urlSearch, updateParams]);
 
@@ -117,16 +125,33 @@ export default function SearchFilterBar({
 
   function handleSearchSubmit(e?: React.FormEvent) {
     if (e) e.preventDefault();
+    // Automatically hide/dismiss the virtual keyboard on mobile & desktop
+    inputRef.current?.blur();
+    if (typeof document !== "undefined") {
+      (document.activeElement as HTMLElement)?.blur?.();
+    }
+    setIsFocused(false);
+
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
     updateParams({ search: searchValue.trim() });
   }
 
+  function handleToggleSort() {
+    const nextSort = currentSort === "oldest" ? "latest" : "oldest";
+    setCurrentSort(nextSort);
+    updateParams({ sort: nextSort === "latest" ? "" : "oldest" });
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
   function handleClear() {
     setSearchValue("");
     setSelectedCategory("");
     setSelectedBrand("");
+    setCurrentSort("latest");
     if (showStatusFilter) setSelectedStatus("active");
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -183,13 +208,14 @@ export default function SearchFilterBar({
             className="input-field search-input"
             style={{
               paddingLeft: "38px",
-              paddingRight: hasFilters ? "130px" : "96px",
+              paddingRight: "86px",
               height: "44px",
               borderRadius: "var(--radius-md)",
               fontSize: "14px",
               boxShadow: "var(--shadow-card)",
             }}
             aria-label="Search inventory"
+            enterKeyHint="search"
           />
 
         <div
@@ -209,30 +235,6 @@ export default function SearchFilterBar({
               className="animate-spin"
               style={{ color: "var(--color-accent)", flexShrink: 0 }}
             />
-          )}
-
-          {hasFilters && (
-            <button
-              type="button"
-              onClick={handleClear}
-              aria-label="Clear all filters"
-              style={{
-                background: "rgba(0, 0, 0, 0.06)",
-                border: "none",
-                cursor: "pointer",
-                color: "var(--color-text-secondary)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "24px",
-                height: "24px",
-                borderRadius: "50%",
-                transition: "all var(--transition-fast)",
-              }}
-              title="Clear filters"
-            >
-              <X size={13} />
-            </button>
           )}
 
           {/* Premium Apple Blue Search Button */}
@@ -306,18 +308,35 @@ export default function SearchFilterBar({
             width: 32px !important;
           }
           .search-input {
-            padding-right: 76px !important;
+            padding-right: 48px !important;
           }
+        }
+        .filter-dropdowns-row::-webkit-scrollbar {
+          display: none;
+        }
+        .filter-reset-pill:active {
+          transform: scale(0.95) !important;
+        }
+        .sort-toggle-btn:hover {
+          border-color: var(--color-accent) !important;
+        }
+        .sort-toggle-btn:active {
+          transform: scale(0.95) !important;
         }
       `}</style>
 
       {/* ── iOS-inspired Dropdowns Row ── */}
       <div
+        className="filter-dropdowns-row"
         style={{
           display: "flex",
           gap: "8px",
           alignItems: "center",
-          flexWrap: "wrap",
+          flexWrap: "nowrap",
+          overflowX: "auto",
+          WebkitOverflowScrolling: "touch",
+          scrollbarWidth: "none",
+          padding: "2px 0 4px",
         }}
       >
         {/* Category iOS Dropdown */}
@@ -365,12 +384,12 @@ export default function SearchFilterBar({
           />
         )}
 
-        {/* Reset Filter Button */}
+        {/* Reset Filter Button — always aligned to the side of filters */}
         {hasFilters && (
           <button
             type="button"
             onClick={handleClear}
-            className="btn-secondary"
+            className="btn-secondary filter-reset-pill animate-fade-in"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -380,10 +399,13 @@ export default function SearchFilterBar({
               fontSize: "12px",
               fontWeight: 500,
               color: "var(--color-text-muted)",
-              background: "transparent",
+              background: "rgba(0, 0, 0, 0.03)",
               border: "1px dashed var(--color-border)",
               cursor: "pointer",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
               transition: "all 150ms ease",
+              userSelect: "none",
             }}
             title="Reset filters"
           >
@@ -391,6 +413,57 @@ export default function SearchFilterBar({
             <span>Reset</span>
           </button>
         )}
+      </div>
+
+      {/* ── Toggle Sort Button (aligned slightly below bottom right of filter bar) ── */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          alignItems: "center",
+          marginTop: "-2px",
+          paddingRight: "2px",
+        }}
+      >
+        <button
+          type="button"
+          onClick={handleToggleSort}
+          className="sort-toggle-btn"
+          aria-label={`Current sort order: ${currentSort === "oldest" ? "Oldest First" : "Latest First"}. Click to toggle.`}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "5px",
+            padding: "4px 10px",
+            borderRadius: "100px",
+            fontSize: "11.5px",
+            fontWeight: 600,
+            cursor: "pointer",
+            border:
+              currentSort === "oldest"
+                ? "1.5px solid var(--color-accent)"
+                : "1px solid var(--color-border)",
+            background:
+              currentSort === "oldest"
+                ? "rgba(0, 113, 227, 0.08)"
+                : "var(--color-bg-card)",
+            color:
+              currentSort === "oldest"
+                ? "var(--color-accent)"
+                : "var(--color-text-secondary)",
+            boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+            transition: "all 150ms cubic-bezier(0.16, 1, 0.3, 1)",
+            userSelect: "none",
+          }}
+          title={
+            currentSort === "oldest"
+              ? "Currently showing Oldest First. Click to switch to Latest First."
+              : "Currently showing Latest First (Default). Click to switch to Oldest First."
+          }
+        >
+          <ArrowUpDown size={11} strokeWidth={2.4} style={{ flexShrink: 0 }} />
+          <span>{currentSort === "oldest" ? "Oldest First" : "Latest First"}</span>
+        </button>
       </div>
     </div>
   );
