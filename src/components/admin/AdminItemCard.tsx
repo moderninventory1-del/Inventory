@@ -233,11 +233,10 @@ export default function AdminItemCard({ item, showDeleted = false }: AdminItemCa
             ) : (
               <>
                 <Link
-                  href={`/item/${item.id}`}
-                  target="_blank"
+                  href={`/admin/inventory/${item.id}`}
                   className="btn-secondary"
                   style={{ padding: "8px", flex: 1, display: "flex", justifyContent: "center" }}
-                  title="View Public Page"
+                  title="View Item Details"
                 >
                   <Eye size={16} />
                 </Link>

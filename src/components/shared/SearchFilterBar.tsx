@@ -4,7 +4,7 @@
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import { Search, X, Loader2, Tag, Tv2, Filter, RotateCcw, ArrowUpDown } from "lucide-react";
+import { Search, X, Loader2, Tag, Tv2, Filter, RotateCcw, ArrowUpDown, Package } from "lucide-react";
 import { ITEM_CATEGORIES } from "@/types";
 import IOSDropdown from "./IOSDropdown";
 
@@ -12,6 +12,8 @@ interface SearchFilterBarProps {
   brands: { id: string; name: string }[];
   categories?: { id: string; name: string }[] | string[];
   showStatusFilter?: boolean;
+  showBoxFilter?: boolean;
+  initialBoxes?: { key: string; name: string }[];
   placeholder?: string;
   onSearchActiveChange?: (active: boolean) => void;
 }
@@ -20,6 +22,8 @@ export default function SearchFilterBar({
   brands,
   categories,
   showStatusFilter,
+  showBoxFilter,
+  initialBoxes,
   placeholder,
   onSearchActiveChange,
 }: SearchFilterBarProps) {
@@ -35,6 +39,7 @@ export default function SearchFilterBar({
 
   const urlCategory = searchParams.get("category") ?? "";
   const urlBrand = searchParams.get("brand") ?? "";
+  const urlBox = searchParams.get("box") ?? "";
   const urlStatus = searchParams.get("status") ?? "active";
   const urlSearch = searchParams.get("search") ?? "";
   const urlSort = searchParams.get("sort") ?? "latest";
@@ -42,6 +47,9 @@ export default function SearchFilterBar({
   // 0ms Optimistic UI state
   const [selectedCategory, setSelectedCategory] = useState(urlCategory);
   const [selectedBrand, setSelectedBrand] = useState(urlBrand);
+  const [selectedBox, setSelectedBox] = useState(urlBox);
+  const [boxes, setBoxes] = useState<{ key: string; name: string }[]>(initialBoxes || []);
+  const [isLoadingBoxes, setIsLoadingBoxes] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState(urlStatus);
   const [searchValue, setSearchValue] = useState(urlSearch);
   const [currentSort, setCurrentSort] = useState<"latest" | "oldest">(
@@ -56,6 +64,44 @@ export default function SearchFilterBar({
   useEffect(() => {
     setSelectedBrand(urlBrand);
   }, [urlBrand]);
+
+  useEffect(() => {
+    setSelectedBox(urlBox);
+  }, [urlBox]);
+
+  useEffect(() => {
+    if (initialBoxes && initialBoxes.length > 0) {
+      setBoxes(initialBoxes);
+    }
+  }, [initialBoxes]);
+
+  // Dynamically fetch grouped boxes whenever selectedBrand changes
+  useEffect(() => {
+    if (!showBoxFilter) return;
+    if (!selectedBrand) {
+      setBoxes([]);
+      setSelectedBox("");
+      return;
+    }
+
+    let active = true;
+    setIsLoadingBoxes(true);
+    fetch(`/api/admin/boxes?brandId=${encodeURIComponent(selectedBrand)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (active && data.boxes) {
+          setBoxes(data.boxes);
+        }
+      })
+      .catch((err) => console.error("Failed to load boxes for brand:", err))
+      .finally(() => {
+        if (active) setIsLoadingBoxes(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [selectedBrand, showBoxFilter]);
 
   useEffect(() => {
     setSelectedStatus(urlStatus);
@@ -151,6 +197,7 @@ export default function SearchFilterBar({
     setSearchValue("");
     setSelectedCategory("");
     setSelectedBrand("");
+    setSelectedBox("");
     setCurrentSort("latest");
     if (showStatusFilter) setSelectedStatus("active");
     if (typeof window !== "undefined") {
@@ -165,6 +212,7 @@ export default function SearchFilterBar({
     Boolean(searchValue) ||
     Boolean(selectedCategory) ||
     Boolean(selectedBrand) ||
+    Boolean(selectedBox) ||
     (showStatusFilter && selectedStatus !== "active");
 
   return (
@@ -360,10 +408,26 @@ export default function SearchFilterBar({
           selectedValue={selectedBrand}
           onChange={(val) => {
             setSelectedBrand(val);
-            updateParams({ brand: val });
+            setSelectedBox("");
+            updateParams({ brand: val, box: "" });
           }}
           icon={<Tv2 size={12} />}
         />
+
+        {/* Box Location iOS Dropdown (Admin only: visible ONLY when brand is selected) */}
+        {showBoxFilter && Boolean(selectedBrand) && (
+          <IOSDropdown
+            label="Box"
+            allLabel={isLoadingBoxes ? "Loading boxes…" : "All Boxes"}
+            options={boxes.map((b) => ({ value: b.key, label: b.name }))}
+            selectedValue={selectedBox}
+            onChange={(val) => {
+              setSelectedBox(val);
+              updateParams({ box: val });
+            }}
+            icon={<Package size={12} />}
+          />
+        )}
 
         {/* Status iOS Dropdown (Admin only) */}
         {showStatusFilter && (

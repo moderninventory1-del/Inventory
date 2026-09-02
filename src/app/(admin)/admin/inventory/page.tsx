@@ -23,8 +23,17 @@ export const dynamic = "force-dynamic";
 
 const LIMIT = 15;
 
+import { getBoxesForBrand } from "@/lib/boxes";
+
 interface PageProps {
-  searchParams: Promise<{ status?: string; search?: string; category?: string; brand?: string; sort?: string }>;
+  searchParams: Promise<{
+    status?: string;
+    search?: string;
+    category?: string;
+    brand?: string;
+    box?: string;
+    sort?: string;
+  }>;
 }
 
 async function getInitialAdminInventory(
@@ -32,6 +41,7 @@ async function getInitialAdminInventory(
   search: string,
   category: string,
   brandId: string,
+  box: string = "",
   sort: "latest" | "oldest" = "latest"
 ): Promise<PaginatedResponse<InventoryItem>> {
   return searchAdminInventory({
@@ -39,6 +49,7 @@ async function getInitialAdminInventory(
     search,
     category,
     brandId,
+    box,
     sort,
     limit: LIMIT,
   });
@@ -50,15 +61,17 @@ async function AdminInventoryList({
   search,
   category,
   brandId,
+  box,
   sort,
 }: {
   status: string;
   search: string;
   category: string;
   brandId: string;
+  box?: string;
   sort: "latest" | "oldest";
 }) {
-  const initialData = await getInitialAdminInventory(status, search, category, brandId, sort);
+  const initialData = await getInitialAdminInventory(status, search, category, brandId, box, sort);
   const showDeleted = status === "deleted" || status === "all";
 
   return (
@@ -67,6 +80,7 @@ async function AdminInventoryList({
       search={search}
       category={category}
       brandId={brandId}
+      box={box}
       status={status}
       sort={sort}
       showDeleted={showDeleted}
@@ -101,6 +115,7 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
   const search   = params.search   ?? "";
   const category = params.category ?? "";
   const brandId  = params.brand    ?? "";
+  const box      = params.box      ?? "";
   const sort: "latest" | "oldest" = params.sort === "oldest" ? "oldest" : "latest";
 
   // Build shared where for count query
@@ -123,9 +138,10 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
       : {}),
   };
 
-  const [totalCount, brands] = await Promise.all([
+  const [totalCount, brands, boxes] = await Promise.all([
     prisma.inventoryItem.count({ where: countWhere }),
     prisma.brand.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    brandId ? getBoxesForBrand(brandId) : Promise.resolve([]),
   ]);
   const categories = ITEM_CATEGORIES;
 
@@ -143,6 +159,7 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
           statusLabel={statusLabel}
           brands={brands}
           categories={categories}
+          boxes={boxes}
         />
       </Suspense>
 
@@ -150,7 +167,7 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
         {/* Infinite-scroll grid with instant streaming skeleton fallback */}
         <div className="inventory-grid-area">
           <Suspense
-            key={`${status}-${search}-${category}-${brandId}-${sort}`}
+            key={`${status}-${search}-${category}-${brandId}-${box}-${sort}`}
             fallback={<AdminInventorySkeleton />}
           >
             <AdminInventoryList
@@ -158,6 +175,7 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
               search={search}
               category={category}
               brandId={brandId}
+              box={box}
               sort={sort}
             />
           </Suspense>

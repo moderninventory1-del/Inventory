@@ -2,13 +2,13 @@
 // Public item detail page — no box location
 
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 import type { Metadata } from "next";
 import { ArrowLeft, Tv2, Calendar, Tag } from "lucide-react";
 import ShareButtons from "@/components/public/ShareButtons";
+import ItemPhotoGallery from "@/components/public/ItemPhotoGallery";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -80,68 +80,15 @@ export default async function ItemDetailPage({ params }: PageProps) {
         }}
         className="item-detail-grid"
       >
-        {/* Images */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {/* Front image */}
-          <div
-            className="card"
-            style={{
-              overflow: "hidden",
-              position: "relative",
-              aspectRatio: "16/10",
-              background: "var(--color-bg-surface)",
-            }}
-          >
-            <Image
-              src={item.frontImage}
-              alt={`${item.brand.name} ${item.modelNumber} — front`}
-              fill
-              sizes="(max-width: 768px) 100vw, 55vw"
-              style={{ objectFit: "contain", padding: "16px" }}
-              priority
-            />
-            <div style={{ position: "absolute", top: "12px", left: "12px" }}>
-              <span className="badge badge-accent">{item.category}</span>
-            </div>
-          </div>
-
-          {/* Back image if available */}
-          {item.backImage && (
-            <div
-              className="card"
-              style={{
-                overflow: "hidden",
-                position: "relative",
-                aspectRatio: "16/10",
-                background: "var(--color-bg-surface)",
-              }}
-            >
-              <Image
-                src={item.backImage}
-                alt={`${item.brand.name} ${item.modelNumber} — back`}
-                fill
-                sizes="(max-width: 768px) 100vw, 55vw"
-                style={{ objectFit: "contain", padding: "16px" }}
-                loading="lazy"
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: "12px",
-                  left: "12px",
-                  background: "rgba(0,0,0,0.6)",
-                  backdropFilter: "blur(8px)",
-                  borderRadius: "6px",
-                  padding: "4px 10px",
-                  fontSize: "12px",
-                  color: "#fff",
-                }}
-              >
-                Back view
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Images with Browser Photo Viewer */}
+        <ItemPhotoGallery
+          frontImage={item.frontImage}
+          backImage={item.backImage}
+          altText={`${item.brand.name} ${item.modelNumber}`}
+          brandName={item.brand.name}
+          modelNumber={item.modelNumber}
+          category={item.category}
+        />
 
         {/* Details */}
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>

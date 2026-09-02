@@ -25,6 +25,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const search   = searchParams.get("search")?.trim()   ?? "";
     const category = searchParams.get("category")?.trim() ?? "";
     const brandId  = searchParams.get("brand")?.trim()    ?? "";
+    const box      = searchParams.get("box")?.trim()      ?? "";
     const status   = searchParams.get("status")?.trim()   ?? "active"; // active | deleted | all
     const sort     = searchParams.get("sort") === "oldest" ? "oldest" : "latest";
     const cursor   = searchParams.get("cursor")            ?? undefined;
@@ -35,6 +36,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       search,
       category,
       brandId,
+      box,
       status,
       sort,
       cursor,

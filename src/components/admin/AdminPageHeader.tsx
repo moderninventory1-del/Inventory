@@ -13,6 +13,7 @@ interface AdminPageHeaderProps {
   statusLabel: string;
   brands: { id: string; name: string }[];
   categories: { id: string; name: string }[] | string[];
+  boxes?: { key: string; name: string }[];
 }
 
 export default function AdminPageHeader({
@@ -20,6 +21,7 @@ export default function AdminPageHeader({
   statusLabel,
   brands,
   categories,
+  boxes,
 }: AdminPageHeaderProps) {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -103,6 +105,8 @@ export default function AdminPageHeader({
           brands={brands}
           categories={categories}
           showStatusFilter={true}
+          showBoxFilter={true}
+          initialBoxes={boxes}
           placeholder="Search by model, brand, ID…"
           onSearchActiveChange={handleSearchActiveChange}
         />

@@ -13,6 +13,7 @@ interface AdminInventoryGridProps {
   search: string;
   category: string;
   brandId: string;
+  box?: string;
   status: string;
   showDeleted: boolean;
   sort?: string;
@@ -23,6 +24,7 @@ export default function AdminInventoryGrid({
   search,
   category,
   brandId,
+  box,
   status,
   showDeleted,
   sort,
@@ -54,6 +56,7 @@ export default function AdminInventoryGrid({
       if (search)   params.set("search",   search);
       if (category) params.set("category", category);
       if (brandId)  params.set("brand",    brandId);
+      if (box)      params.set("box",      box);
       if (status)   params.set("status",   status);
       if (sort)     params.set("sort",     sort);
       if (cursor)   params.set("cursor",   cursor);

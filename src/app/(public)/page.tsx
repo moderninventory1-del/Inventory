@@ -41,6 +41,18 @@ async function getInitialInventory(
   });
 }
 
+async function getBrands() {
+  try {
+    return await prisma.brand.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    });
+  } catch (err) {
+    console.error("[PublicPage] Failed to fetch brands:", err);
+    return [];
+  }
+}
+
 async function PublicInventoryList({
   search,
   category,
@@ -52,7 +64,13 @@ async function PublicInventoryList({
   brandId: string;
   sort: "latest" | "oldest";
 }) {
-  const initialData = await getInitialInventory(search, category, brandId, sort);
+  let initialData: PaginatedResponse<PublicInventoryItem>;
+  try {
+    initialData = await getInitialInventory(search, category, brandId, sort);
+  } catch (err) {
+    console.error("[PublicPage] Failed to fetch inventory:", err);
+    initialData = { items: [], nextCursor: null };
+  }
 
   return (
     <InventoryGrid
@@ -90,10 +108,7 @@ export default async function PublicInventoryPage({ searchParams }: PageProps) {
   const brandId = params.brand ?? "";
   const sort: "latest" | "oldest" = params.sort === "oldest" ? "oldest" : "latest";
 
-  const brands = await prisma.brand.findMany({
-    orderBy: { name: "asc" },
-    select: { id: true, name: true },
-  });
+  const brands = await getBrands();
 
   return (
     <div className="page-container public-page-wrapper">

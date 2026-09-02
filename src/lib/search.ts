@@ -31,6 +31,7 @@ export interface SearchOptions {
 
 export interface AdminSearchOptions extends SearchOptions {
   status?: string; // "active" | "deleted" | "all"
+  box?: string; // Normalized box key, e.g. "lgcardbox1"
 }
 
 /**
@@ -156,12 +157,13 @@ export async function searchPublicInventory({
 }
 
 /**
- * Admin Inventory Search with Forward Subsequence & Model-First Ranking
+ * Admin Inventory Search with Forward Subsequence & Model-First Ranking & Box Location Filtering
  */
 export async function searchAdminInventory({
   search = "",
   category = "",
   brandId = "",
+  box = "",
   status = "active",
   sort = "latest",
   cursor,
@@ -169,10 +171,11 @@ export async function searchAdminInventory({
 }: AdminSearchOptions): Promise<PaginatedResponse<InventoryItem>> {
   const cleanSearch = search.trim();
   const regex = buildForwardSubsequenceRegex(cleanSearch);
+  const cleanBox = box ? box.toLowerCase().replace(/[^a-z0-9]/g, "") : "";
   const sortDirection = sort === "oldest" ? "asc" : "desc";
 
-  // If no search query, use standard Prisma query
-  if (!cleanSearch || !regex) {
+  // If no search query and no box filter, use standard Prisma query
+  if (!cleanSearch && !cleanBox) {
     const where = {
       isDeleted:
         status === "deleted" ? true : status === "active" ? false : undefined,
@@ -195,7 +198,7 @@ export async function searchAdminInventory({
     return { items: items as unknown as InventoryItem[], nextCursor };
   }
 
-  // Forward subsequence search for admin
+  // Raw query when forward-subsequence search OR box filter is active
   const offset = cursor ? parseInt(cursor, 10) || 0 : 0;
   const conditions: string[] = [];
   const params: any[] = [];
@@ -217,18 +220,44 @@ export async function searchAdminInventory({
     params.push(brandId);
   }
 
-  const rawPattern = `%${cleanSearch}%`;
-  const pSearch = paramIdx++;
-  const pRegex = paramIdx++;
-  params.push(rawPattern, regex);
+  // Box filter matching normalized alphanumeric characters (ignores case, spaces, symbols)
+  if (cleanBox) {
+    conditions.push(
+      `regexp_replace(lower(COALESCE(i."boxLocation", '')), '[^a-z0-9]', '', 'g') = $${paramIdx++}`
+    );
+    params.push(cleanBox);
+  }
 
-  conditions.push(`(
-    i."modelNumber" ~* $${pRegex}
-    OR i.description ~* $${pRegex}
-    OR b.name ~* $${pRegex}
-    OR i."boxLocation" ~* $${pRegex}
-    OR i.id ILIKE $${pSearch}
-  )`);
+  const hasSearch = Boolean(cleanSearch && regex);
+  let rankSelect = "1 as rank";
+
+  if (hasSearch) {
+    const rawPattern = `%${cleanSearch}%`;
+    const pSearch = paramIdx++;
+    const pRegex = paramIdx++;
+    params.push(rawPattern, regex);
+
+    conditions.push(`(
+      i."modelNumber" ~* $${pRegex}
+      OR i.description ~* $${pRegex}
+      OR b.name ~* $${pRegex}
+      OR i."boxLocation" ~* $${pRegex}
+      OR i.id ILIKE $${pSearch}
+    )`);
+
+    rankSelect = `
+      CASE
+        WHEN i."modelNumber" ILIKE $${pSearch} THEN 1
+        WHEN i."modelNumber" ~* $${pRegex} THEN 2
+        WHEN i.id ILIKE $${pSearch} THEN 3
+        WHEN b.name ILIKE $${pSearch} THEN 4
+        WHEN i.description ILIKE $${pSearch} THEN 5
+        WHEN i.description ~* $${pRegex} THEN 6
+        WHEN i."boxLocation" ~* $${pRegex} THEN 7
+        ELSE 8
+      END as rank
+    `;
+  }
 
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
@@ -247,20 +276,11 @@ export async function searchAdminInventory({
       i."createdAt",
       i."updatedAt",
       json_build_object('id', b.id, 'name', b.name) as brand,
-      CASE
-        WHEN i."modelNumber" ILIKE $${pSearch} THEN 1
-        WHEN i."modelNumber" ~* $${pRegex} THEN 2
-        WHEN i.id ILIKE $${pSearch} THEN 3
-        WHEN b.name ILIKE $${pSearch} THEN 4
-        WHEN i.description ILIKE $${pSearch} THEN 5
-        WHEN i.description ~* $${pRegex} THEN 6
-        WHEN i."boxLocation" ~* $${pRegex} THEN 7
-        ELSE 8
-      END as rank
+      ${rankSelect}
     FROM "InventoryItem" i
     LEFT JOIN "Brand" b ON i."brandId" = b.id
     ${whereClause}
-    ORDER BY rank ASC, i."createdAt" ${sort === "oldest" ? "ASC" : "DESC"}
+    ORDER BY ${hasSearch ? "rank ASC," : ""} i."createdAt" ${sort === "oldest" ? "ASC" : "DESC"}
     LIMIT ${limit + 1} OFFSET ${offset};
   `;
 
