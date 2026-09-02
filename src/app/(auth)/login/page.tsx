@@ -21,25 +21,6 @@ export default function LoginPage() {
         padding: "24px 16px",
       }}
     >
-<<<<<<< HEAD
-=======
-      {/* Background glow */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "fixed",
-          top: 0,
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "600px",
-          height: "400px",
-          background:
-            "radial-gradient(ellipse at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }}
-      />
-
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
       <div style={{ width: "100%", maxWidth: "400px", position: "relative" }}>
         {/* Logo / Brand */}
         <div style={{ textAlign: "center", marginBottom: "32px" }}>

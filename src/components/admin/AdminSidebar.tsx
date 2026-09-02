@@ -11,13 +11,7 @@ import {
   PlusCircle,
   Tv2,
   LogOut,
-<<<<<<< HEAD
 } from "lucide-react";
-=======
-  X,
-} from "lucide-react";
-import { useMobileMenu } from "./MobileMenuContext";
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -27,10 +21,6 @@ const navItems = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
-<<<<<<< HEAD
-=======
-  const { isOpen, close } = useMobileMenu();
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 
   function isActive(href: string, exact: boolean) {
     return exact ? pathname === href : pathname.startsWith(href) && (exact || pathname !== "/admin");
@@ -88,10 +78,6 @@ export default function AdminSidebar() {
             <Link
               key={href}
               href={href}
-<<<<<<< HEAD
-=======
-              onClick={close}
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -103,11 +89,7 @@ export default function AdminSidebar() {
                 fontWeight: active ? 600 : 400,
                 color: active ? "var(--color-accent-text)" : "var(--color-text-secondary)",
                 background: active ? "var(--color-accent-glow)" : "transparent",
-<<<<<<< HEAD
                 border: active ? "1px solid rgba(0, 113, 227, 0.15)" : "1px solid transparent",
-=======
-                border: active ? "1px solid rgba(99, 102, 241, 0.2)" : "1px solid transparent",
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
                 transition: "all var(--transition-fast)",
               }}
             >
@@ -134,63 +116,11 @@ export default function AdminSidebar() {
 
   return (
     <>
-<<<<<<< HEAD
       {/* Desktop sidebar — visible on screens 768px and wider */}
-=======
-      {/* Desktop sidebar — always visible on md+ */}
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
       <div style={{ display: "none" }} className="admin-sidebar-desktop">
         {sidebarContent}
       </div>
 
-<<<<<<< HEAD
-=======
-      {/* Mobile overlay — only rendered when open */}
-      {isOpen && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 200,
-            display: "flex",
-          }}
-        >
-          {/* Backdrop */}
-          <div
-            onClick={close}
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "rgba(0,0,0,0.7)",
-              backdropFilter: "blur(4px)",
-            }}
-          />
-          {/* Sidebar panel */}
-          <div style={{ position: "relative", zIndex: 201 }}>
-            {sidebarContent}
-            <button
-              onClick={close}
-              style={{
-                position: "absolute",
-                top: "16px",
-                right: "-44px",
-                background: "var(--color-bg-card)",
-                border: "1px solid var(--color-border)",
-                borderRadius: "50%",
-                padding: "6px",
-                cursor: "pointer",
-                color: "var(--color-text-primary)",
-                display: "flex",
-              }}
-              aria-label="Close menu"
-            >
-              <X size={18} />
-            </button>
-          </div>
-        </div>
-      )}
-
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
       <style>{`
         @media (min-width: 768px) {
           .admin-sidebar-desktop { display: block !important; }

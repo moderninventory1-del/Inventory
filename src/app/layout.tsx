@@ -38,10 +38,7 @@ export default function RootLayout({
                 border: "1px solid var(--color-border)",
                 borderRadius: "var(--radius-md)",
                 fontSize: "14px",
-<<<<<<< HEAD
                 boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
-=======
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
               },
               success: {
                 iconTheme: {

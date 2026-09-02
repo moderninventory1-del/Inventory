@@ -11,6 +11,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 import MobileMenuButton from "@/components/admin/MobileMenuButton";
+import { ITEM_CATEGORIES } from "@/types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -40,16 +41,8 @@ export default async function EditInventoryItemPage({ params }: PageProps) {
 
   if (!item) notFound();
 
-<<<<<<< HEAD
-  const [brands, categories] = await Promise.all([
-    prisma.brand.findMany({ orderBy: { name: "asc" } }),
-    prisma.category.findMany({ orderBy: { name: "asc" } }),
-  ]);
-=======
-  const brands = await prisma.brand.findMany({
-    orderBy: { name: "asc" },
-  });
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
+  const brands = await prisma.brand.findMany({ orderBy: { name: "asc" } });
+  const categories = ITEM_CATEGORIES.map((c) => ({ id: c, name: c }));
 
   // Bind the id to the action
   const updateAction = updateInventoryItem.bind(null, id);
@@ -77,11 +70,7 @@ export default async function EditInventoryItemPage({ params }: PageProps) {
         </p>
       </div>
 
-<<<<<<< HEAD
       <InventoryForm item={item} brands={brands} categories={categories} action={updateAction} />
-=======
-      <InventoryForm item={item} brands={brands} action={updateAction} />
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
     </div>
   );
 }

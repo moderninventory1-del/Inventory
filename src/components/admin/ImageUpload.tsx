@@ -115,11 +115,7 @@ export default function ImageUpload({
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-<<<<<<< HEAD
                 background: "rgba(0,0,0,0.35)",
-=======
-                background: "rgba(0,0,0,0.4)",
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
                 color: "white",
                 zIndex: 10,
                 gap: "8px",
@@ -144,15 +140,9 @@ export default function ImageUpload({
               type="button"
               onClick={() => inputRef.current?.click()}
               style={{
-<<<<<<< HEAD
                 background: "rgba(0,0,0,0.55)",
                 backdropFilter: "blur(8px)",
                 border: "1px solid rgba(255,255,255,0.2)",
-=======
-                background: "rgba(0,0,0,0.7)",
-                backdropFilter: "blur(8px)",
-                border: "1px solid rgba(255,255,255,0.1)",
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
                 borderRadius: "6px",
                 padding: "6px",
                 cursor: "pointer",
@@ -168,15 +158,9 @@ export default function ImageUpload({
               type="button"
               onClick={handleRemove}
               style={{
-<<<<<<< HEAD
                 background: "rgba(255, 59, 48, 0.85)",
                 backdropFilter: "blur(8px)",
                 border: "1px solid rgba(255,255,255,0.2)",
-=======
-                background: "rgba(239, 68, 68, 0.8)",
-                backdropFilter: "blur(8px)",
-                border: "1px solid rgba(255,255,255,0.1)",
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
                 borderRadius: "6px",
                 padding: "6px",
                 cursor: "pointer",

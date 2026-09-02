@@ -1,115 +1,53 @@
-<<<<<<< HEAD
 @import "tailwindcss";
 
 /* ============================================================
-   TV Inventory Platform — Premium White Design System
-   Apple-inspired · Mobile-first · Fast & Eye-Soothing
+   Apple-Inspired White Theme Variables & Design Tokens
    ============================================================ */
 
-/* ── CSS Custom Properties ── */
 :root {
-  /* Backgrounds — Eye-soothing Apple canvas & pure white surfaces */
+  /* Canvas & backgrounds */
   --color-bg-primary: #fbfbfd;
   --color-bg-secondary: #f5f5f7;
   --color-bg-card: #ffffff;
-  --color-bg-card-hover: #ffffff;
-  --color-bg-surface: #f5f5f7;
+  --color-bg-surface: #f0f0f2;
 
-  /* Borders */
-  --color-border: rgba(0, 0, 0, 0.07);
-  --color-border-hover: rgba(0, 0, 0, 0.14);
-
-  /* Accent — Signature Apple Blue */
-  --color-accent: #0071e3;
-  --color-accent-dim: #0077ed;
-  --color-accent-glow: rgba(0, 113, 227, 0.07);
-  --color-accent-text: #0071e3;
-
-  /* Text — Maximum legibility & eye comfort */
+  /* Typography */
   --color-text-primary: #1d1d1f;
-  --color-text-secondary: #6e6e73;
+  --color-text-secondary: #424245;
   --color-text-muted: #86868b;
 
-  /* Semantic status colors */
+  /* Borders & Dividers */
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-border-hover: rgba(0, 0, 0, 0.16);
+
+  /* Accents — Apple Blue */
+  --color-accent: #0071e3;
+  --color-accent-hover: #0077ed;
+  --color-accent-glow: rgba(0, 113, 227, 0.08);
+  --color-accent-text: #0071e3;
+  --gradient-accent: linear-gradient(135deg, #0071e3 0%, #47a3f3 100%);
+
+  /* Semantic Feedback */
   --color-success: #34c759;
-  --color-warning: #ff9f0a;
+  --color-warning: #ff9500;
   --color-danger: #ff3b30;
-  --color-danger-dim: rgba(255, 59, 48, 0.06);
+  --color-danger-dim: rgba(255, 59, 48, 0.08);
 
-  /* Gradients */
-  --gradient-accent: linear-gradient(135deg, #0071e3 0%, #42a1ec 100%);
-  --gradient-card: none;
-
-  /* Shadows — Soft, diffused, eye-soothing */
+  /* Shadows — Soft, diffused, elegant */
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.03), 0 4px 14px rgba(0, 0, 0, 0.03);
-  --shadow-card-hover: 0 10px 30px rgba(0, 0, 0, 0.07), 0 2px 6px rgba(0, 0, 0, 0.03);
-  --shadow-modal: 0 24px 80px rgba(0, 0, 0, 0.12);
-  --shadow-input-focus: 0 0 0 4px rgba(0, 113, 227, 0.12);
+  --shadow-card-hover: 0 6px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.03);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-input-focus: 0 0 0 3px rgba(0, 113, 227, 0.15);
 
-  /* Radii — Smooth rounded corners */
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
-
-  /* Spring transitions for tactile touch */
-  --transition-fast: 120ms cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-base: 220ms cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-slow: 380ms cubic-bezier(0.16, 1, 0.3, 1);
-=======
-
-@import "tailwindcss";
-
-/* ============================================================
-   TV Inventory Platform — Design System
-   ============================================================ */
-
-/* CSS Custom Properties */
-:root {
-  /* Colors */
-  --color-bg-primary: #0a0a0f;
-  --color-bg-secondary: #111118;
-  --color-bg-card: #16161f;
-  --color-bg-card-hover: #1c1c28;
-  --color-bg-surface: #1e1e2a;
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-hover: rgba(255, 255, 255, 0.15);
-
-  --color-accent: #6366f1;
-  --color-accent-dim: #4f46e5;
-  --color-accent-glow: rgba(99, 102, 241, 0.15);
-  --color-accent-text: #818cf8;
-
-  --color-text-primary: #f1f1f5;
-  --color-text-secondary: #a0a0b8;
-  --color-text-muted: #6b6b80;
-
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
-  --color-danger-dim: rgba(239, 68, 68, 0.1);
-
-  /* Gradients */
-  --gradient-accent: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  --gradient-card: linear-gradient(145deg, #16161f 0%, #1a1a24 100%);
-  --gradient-glow: radial-gradient(ellipse at 50% 0%, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
-
-  /* Shadows */
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
-  --shadow-card-hover: 0 8px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(99, 102, 241, 0.15);
-  --shadow-modal: 0 24px 80px rgba(0, 0, 0, 0.8);
-
-  /* Border Radius */
+  /* Radii */
   --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
 
-  /* Transitions */
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
+  /* Motion */
+  --transition-fast: 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-base: 250ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ============================================================
@@ -122,10 +60,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-<<<<<<< HEAD
   -webkit-tap-highlight-color: transparent;
-=======
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 }
 
 html {
@@ -135,29 +70,20 @@ html {
 }
 
 body {
-<<<<<<< HEAD
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
     "SF Pro Text", "Segoe UI", Roboto, "Inter", system-ui, sans-serif;
-=======
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
   min-height: 100dvh;
   line-height: 1.6;
 }
 
-<<<<<<< HEAD
 /* Scrollbar — minimal & unobtrusive */
-=======
-/* Scrollbar */
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-<<<<<<< HEAD
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
@@ -166,23 +92,12 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.24);
-=======
-  background: var(--color-bg-secondary);
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 }
 
 /* ============================================================
    Typography
    ============================================================ */
 
-<<<<<<< HEAD
 h1,
 h2,
 h3,
@@ -196,13 +111,13 @@ h6 {
 }
 
 /* ============================================================
-   Cards — Clean white with subtle elevation
+   Card Component
    ============================================================ */
 
 .card {
-  background: var(--color-bg-card);
+  background-color: var(--color-bg-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
   transition: transform var(--transition-base),
     box-shadow var(--transition-base),
@@ -210,80 +125,41 @@ h6 {
 }
 
 .card:hover {
-=======
-h1, h2, h3, h4, h5, h6 {
-  color: var(--color-text-primary);
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-}
-
-/* ============================================================
-   Reusable Component Classes
-   ============================================================ */
-
-/* Cards */
-.card {
-  background: var(--gradient-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
-}
-
-.card:hover {
-  transform: translateY(-2px);
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
   box-shadow: var(--shadow-card-hover);
   border-color: var(--color-border-hover);
 }
 
-<<<<<<< HEAD
 .card:active {
   transform: scale(0.992);
 }
 
 /* ============================================================
-   Buttons — Apple-inspired tactile buttons
+   Buttons
    ============================================================ */
 
-=======
-/* Buttons */
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 .btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   padding: 10px 20px;
-<<<<<<< HEAD
   background: var(--color-accent);
-=======
-  background: var(--gradient-accent);
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
   color: #ffffff;
   font-weight: 600;
   font-size: 14px;
   border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
-<<<<<<< HEAD
   transition: opacity var(--transition-fast),
     transform var(--transition-fast),
     box-shadow var(--transition-fast);
   text-decoration: none;
   letter-spacing: 0.01em;
   user-select: none;
-=======
-  transition: opacity var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
-  text-decoration: none;
-  letter-spacing: 0.01em;
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 }
 
 .btn-primary:hover {
-  opacity: 0.9;
-<<<<<<< HEAD
+  opacity: 0.92;
   box-shadow: 0 3px 14px rgba(0, 113, 227, 0.32);
 }
 
@@ -296,20 +172,6 @@ h1, h2, h3, h4, h5, h6 {
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
-=======
-  transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 }
 
 .btn-secondary {
@@ -318,11 +180,7 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: center;
   gap: 8px;
   padding: 10px 20px;
-<<<<<<< HEAD
   background: #ffffff;
-=======
-  background: transparent;
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
   color: var(--color-text-secondary);
   font-weight: 500;
   font-size: 14px;
@@ -331,10 +189,7 @@ h1, h2, h3, h4, h5, h6 {
   cursor: pointer;
   transition: all var(--transition-fast);
   text-decoration: none;
-<<<<<<< HEAD
   user-select: none;
-=======
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 }
 
 .btn-secondary:hover {
@@ -343,13 +198,10 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--color-border-hover);
 }
 
-<<<<<<< HEAD
 .btn-secondary:active {
   transform: scale(0.96) !important;
 }
 
-=======
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 .btn-danger {
   display: inline-flex;
   align-items: center;
@@ -360,7 +212,6 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-danger);
   font-weight: 500;
   font-size: 13px;
-<<<<<<< HEAD
   border: 1px solid rgba(255, 59, 48, 0.12);
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -378,59 +229,20 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ============================================================
-   Tactile Filter Pills
-   ============================================================ */
-
-.filter-pill {
-  transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-.filter-pill:hover {
-  border-color: rgba(0, 113, 227, 0.3) !important;
-}
-
-.filter-pill:active {
-  transform: scale(0.94) !important;
-}
-
-/* ============================================================
-   Form Inputs — Clean white fields
+   Form Inputs
    ============================================================ */
 
 .input-field {
   width: 100%;
   padding: 10px 14px;
-  background: #ffffff;
-  border: 1.5px solid var(--color-border);
-=======
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.btn-danger:hover {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.4);
-}
-
-/* Form inputs */
-.input-field {
-  width: 100%;
-  padding: 10px 14px;
-  background: var(--color-bg-surface);
+  background-color: #ffffff;
   border: 1px solid var(--color-border);
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
   border-radius: var(--radius-sm);
   color: var(--color-text-primary);
   font-size: 14px;
   font-family: inherit;
-<<<<<<< HEAD
   transition: border-color var(--transition-fast),
     box-shadow var(--transition-fast);
-=======
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
   outline: none;
 }
 
@@ -440,34 +252,22 @@ h1, h2, h3, h4, h5, h6 {
 
 .input-field:focus {
   border-color: var(--color-accent);
-<<<<<<< HEAD
   box-shadow: var(--shadow-input-focus);
-=======
-  box-shadow: 0 0 0 3px var(--color-accent-glow);
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 }
 
 .input-label {
   display: block;
   font-size: 13px;
-<<<<<<< HEAD
   font-weight: 600;
-=======
-  font-weight: 500;
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
   color: var(--color-text-secondary);
   margin-bottom: 6px;
   letter-spacing: 0.01em;
 }
 
-<<<<<<< HEAD
 /* ============================================================
-   Badges — Soft pastel tints
+   Badges
    ============================================================ */
 
-=======
-/* Badges */
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 .badge {
   display: inline-flex;
   align-items: center;
@@ -482,7 +282,6 @@ h1, h2, h3, h4, h5, h6 {
 .badge-accent {
   background: var(--color-accent-glow);
   color: var(--color-accent-text);
-<<<<<<< HEAD
   border: 1px solid rgba(0, 113, 227, 0.12);
 }
 
@@ -490,26 +289,16 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(52, 199, 89, 0.08);
   color: #248a3d;
   border: 1px solid rgba(52, 199, 89, 0.15);
-=======
-  border: 1px solid rgba(99, 102, 241, 0.25);
-}
-
-.badge-success {
-  background: rgba(34, 197, 94, 0.1);
-  color: #4ade80;
-  border: 1px solid rgba(34, 197, 94, 0.2);
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 }
 
 .badge-danger {
   background: var(--color-danger-dim);
-<<<<<<< HEAD
   color: var(--color-danger);
   border: 1px solid rgba(255, 59, 48, 0.12);
 }
 
 /* ============================================================
-   Skeleton Loading — Silky smooth Apple pulse shimmer
+   Skeleton Shimmer
    ============================================================ */
 
 .skeleton {
@@ -520,28 +309,11 @@ h1, h2, h3, h4, h5, h6 {
     rgba(0, 0, 0, 0.035) 75%
   );
   background-size: 200% 100%;
-  animation: skeleton-shimmer 1.3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-=======
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.2);
-}
-
-/* Loading skeleton */
-.skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--color-bg-card) 25%,
-    var(--color-bg-surface) 50%,
-    var(--color-bg-card) 75%
-  );
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1.5s infinite;
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
+  animation: skeleton-shimmer 1.5s infinite ease-in-out;
   border-radius: var(--radius-sm);
 }
 
 @keyframes skeleton-shimmer {
-<<<<<<< HEAD
   0% {
     background-position: 200% 0;
   }
@@ -551,30 +323,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ============================================================
-   Filter Transition — Subtle opacity ease during filter update
+   Page Layout & Utilities
    ============================================================ */
 
-.filter-grid-container:has([data-filter-pending]) .inventory-grid-area {
-  opacity: 0.45;
-  transition: opacity 120ms ease;
-}
-
-.filter-grid-container .inventory-grid-area {
-  opacity: 1;
-  transition: opacity 180ms ease;
-}
-
-/* ============================================================
-   Page Container — Responsive padding
-   ============================================================ */
-
-=======
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* Page container */
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 .page-container {
   max-width: 1280px;
   margin: 0 auto;
@@ -593,32 +344,6 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-<<<<<<< HEAD
-/* ============================================================
-   Dividers
-   ============================================================ */
-
-=======
-/* Glow background effect */
-.glow-bg {
-  position: relative;
-}
-.glow-bg::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 800px;
-  height: 400px;
-  background: var(--gradient-glow);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Dividers */
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 .divider {
   height: 1px;
   background: var(--color-border);
@@ -626,40 +351,24 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0;
 }
 
-<<<<<<< HEAD
-/* ============================================================
-   Focus Ring — Apple blue
-   ============================================================ */
-
-=======
-/* Focus ring */
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 *:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
 
-<<<<<<< HEAD
-/* ============================================================
-   Image Aspect Ratio
-   ============================================================ */
-
-=======
-/* Image aspect ratio containers */
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 .aspect-inventory {
   aspect-ratio: 4 / 3;
 }
 
-<<<<<<< HEAD
-/* ============================================================
-   Animations — Crispy and fast
-   ============================================================ */
+/* Touch feedback for pills */
+.filter-pill:active {
+  transform: scale(0.95) !important;
+}
 
-@keyframes fade-in {
+@keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -668,34 +377,5 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .animate-fade-in {
-  animation: fade-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin {
-  animation: spin 0.8s linear infinite;
-=======
-/* Fade-in animation */
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.3s ease forwards;
-}
-
-/* Spin animation */
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.animate-spin {
-  animation: spin 1s linear infinite;
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
+  animation: fadeIn 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

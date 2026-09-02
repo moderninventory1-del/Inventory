@@ -1,21 +1,14 @@
 // src/types/index.ts
 // Shared TypeScript types for the TV Inventory Platform
 
-<<<<<<< HEAD
-export type ItemCategory = string;
-
-export const DEFAULT_CATEGORIES: string[] = [
-=======
 export type ItemCategory = "CARD" | "SUPPLY" | "INVERTER";
 
-export const ITEM_CATEGORIES: ItemCategory[] = [
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
+export const DEFAULT_CATEGORIES: string[] = [
   "CARD",
   "SUPPLY",
   "INVERTER",
 ];
 
-<<<<<<< HEAD
 // Kept for backward compatibility
 export const ITEM_CATEGORIES = DEFAULT_CATEGORIES;
 
@@ -25,8 +18,6 @@ export interface Category {
   createdAt?: Date;
 }
 
-=======
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 export interface InventoryItem {
   id: string;
   modelNumber: string;
@@ -35,11 +26,7 @@ export interface InventoryItem {
     id: string;
     name: string;
   };
-<<<<<<< HEAD
   category: string;
-=======
-  category: ItemCategory;
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
   boxLocation: string | null;
   description: string | null;
   frontImage: string;

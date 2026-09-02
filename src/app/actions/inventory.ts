@@ -40,12 +40,6 @@ function validateItemData(data: ItemFormData): string | null {
   if (!data.modelNumber.trim()) return "Model number is required";
   if (!data.brandId.trim()) return "Brand is required";
   if (!data.category.trim()) return "Category is required";
-<<<<<<< HEAD
-=======
-  if (!ITEM_CATEGORIES.includes(data.category as ItemCategory)) {
-    return "Invalid category selected";
-  }
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
   return null;
 }
 
@@ -87,11 +81,7 @@ export async function createInventoryItem(formData: FormData): Promise<ActionRes
       data: {
         modelNumber: data.modelNumber.trim(),
         brandId: data.brandId.trim(),
-<<<<<<< HEAD
-        category: data.category.trim().toUpperCase(),
-=======
-        category: data.category as ItemCategory,
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
+        category: data.category.trim().toUpperCase() as ItemCategory,
         boxLocation: data.boxLocation.trim() || null,
         description: data.description.trim() || null,
         frontImage: frontUpload.secure_url,
@@ -164,11 +154,7 @@ export async function updateInventoryItem(
       data: {
         modelNumber: data.modelNumber.trim(),
         brandId: data.brandId.trim(),
-<<<<<<< HEAD
-        category: data.category.trim().toUpperCase(),
-=======
-        category: data.category as ItemCategory,
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
+        category: data.category.trim().toUpperCase() as ItemCategory,
         boxLocation: data.boxLocation.trim() || null,
         description: data.description.trim() || null,
         frontImage: frontUrl,
@@ -284,7 +270,6 @@ export async function createBrand(name: string): Promise<BrandActionResult> {
     return { success: false, error: "Failed to create brand" };
   }
 }
-<<<<<<< HEAD
 
 // ─── Create Category ─────────────────────────────────────────────────────────
 
@@ -293,44 +278,5 @@ export type CategoryActionResult =
   | { success: false; error: string };
 
 export async function createCategory(name: string): Promise<CategoryActionResult> {
-  try {
-    await requireAdmin();
-
-    const trimmedName = name.trim().toUpperCase();
-    if (!trimmedName) {
-      return { success: false, error: "Category name is required" };
-    }
-
-    // Check for duplicate
-    const existing = await prisma.category.findFirst({
-      where: {
-        name: {
-          equals: trimmedName,
-          mode: "insensitive",
-        },
-      },
-    });
-
-    if (existing) {
-      return { success: false, error: "A category with this name already exists" };
-    }
-
-    const category = await prisma.category.create({
-      data: {
-        name: trimmedName,
-      },
-    });
-
-    revalidatePath("/");
-    revalidatePath("/admin/inventory");
-    revalidatePath("/admin/inventory/new");
-    revalidatePath("/admin/inventory/[id]/edit", "page");
-
-    return { success: true, category };
-  } catch (err) {
-    console.error("[createCategory]", err);
-    return { success: false, error: "Failed to create category" };
-  }
+  return { success: false, error: "Categories are managed by system enum" };
 }
-=======
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609

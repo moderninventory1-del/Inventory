@@ -10,11 +10,7 @@ import type { PaginatedResponse, InventoryItem } from "@/types";
 
 export const dynamic = "force-dynamic";
 
-<<<<<<< HEAD
 const DEFAULT_LIMIT = 15;
-=======
-const DEFAULT_LIMIT = 20;
->>>>>>> 5efaf11ce2b8c94339206a66f0bf618286973609
 const MAX_LIMIT = 48;
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
