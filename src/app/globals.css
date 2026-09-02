@@ -61,12 +61,17 @@
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation; /* Disables double-tap to zoom, removes 300ms touch delay */
 }
 
 html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  touch-action: pan-x pan-y; /* Disables pinch zoom */
+  overscroll-behavior-y: none;
 }
 
 body {
@@ -76,6 +81,18 @@ body {
   color: var(--color-text-primary);
   min-height: 100dvh;
   line-height: 1.6;
+  touch-action: pan-x pan-y;
+  overscroll-behavior-y: none;
+  -webkit-touch-callout: none;
+}
+
+/* Ensure inputs never trigger iOS Safari auto-zoom on focus (requires >=16px) */
+@media screen and (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 }
 
 /* Scrollbar — minimal & unobtrusive */

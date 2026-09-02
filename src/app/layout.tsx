@@ -1,10 +1,20 @@
 // src/app/layout.tsx
 // Root layout — applies to all routes
 
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import SessionProviderWrapper from "@/components/SessionProviderWrapper";
+import PreventZoom from "@/components/shared/PreventZoom";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: "#ffffff",
+};
 
 export const metadata: Metadata = {
   title: {
@@ -27,6 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
+        <PreventZoom />
         <SessionProviderWrapper>
           {children}
           <Toaster

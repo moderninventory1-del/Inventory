@@ -8,11 +8,9 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import AdminInventoryGrid from "@/components/admin/AdminInventoryGrid";
 import AdminItemCardSkeleton from "@/components/admin/AdminItemCardSkeleton";
-import SearchFilterBar from "@/components/shared/SearchFilterBar";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { Suspense } from "react";
-import Link from "next/link";
 import type { Metadata } from "next";
-import { PlusCircle } from "lucide-react";
 import { searchAdminInventory } from "@/lib/search";
 import { ITEM_CATEGORIES, type InventoryItem, type PaginatedResponse } from "@/types";
 import MobileMenuButton from "@/components/admin/MobileMenuButton";
@@ -137,41 +135,18 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
     : "";
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <MobileMenuButton />
-          <div>
-            <h1 style={{ fontSize: "22px", fontWeight: 800, letterSpacing: "-0.03em" }}>
-              Inventory
-            </h1>
-            <p style={{ fontSize: "13px", color: "var(--color-text-muted)", marginTop: "3px" }}>
-              {totalCount} {statusLabel}item{totalCount !== 1 ? "s" : ""}
-            </p>
-          </div>
-        </div>
-        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
-          <Link href="/admin/inventory/new" className="btn-primary" style={{ fontSize: "13px" }}>
-            <PlusCircle size={15} />
-            Add Item
-          </Link>
-        </div>
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      {/* ── Top Header & Sliding Sticky Search Bar ── */}
+      <Suspense fallback={null}>
+        <AdminPageHeader
+          totalCount={totalCount}
+          statusLabel={statusLabel}
+          brands={brands}
+          categories={categories}
+        />
+      </Suspense>
 
       <div className="filter-grid-container">
-        {/* Search and Filters */}
-        <div style={{ marginBottom: "20px" }}>
-          <Suspense fallback={null}>
-            <SearchFilterBar
-              brands={brands}
-              categories={categories}
-              showStatusFilter={true}
-              placeholder="Search by model, brand, ID…"
-            />
-          </Suspense>
-        </div>
-
         {/* Infinite-scroll grid with instant streaming skeleton fallback */}
         <div className="inventory-grid-area">
           <Suspense

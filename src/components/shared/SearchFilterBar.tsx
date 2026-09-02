@@ -415,13 +415,13 @@ export default function SearchFilterBar({
         )}
       </div>
 
-      {/* ── Toggle Sort Button (aligned slightly below bottom right of filter bar) ── */}
+      {/* ── Toggle Sort Button (distinct rounded-rectangle shape, custom colour & increased gap) ── */}
       <div
         style={{
           display: "flex",
           justifyContent: "flex-end",
           alignItems: "center",
-          marginTop: "-2px",
+          marginTop: "12px",
           paddingRight: "2px",
         }}
       >
@@ -433,36 +433,44 @@ export default function SearchFilterBar({
           style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: "5px",
-            padding: "4px 10px",
-            borderRadius: "100px",
-            fontSize: "11.5px",
+            gap: "6px",
+            padding: "6px 12px",
+            borderRadius: "8px",
+            fontSize: "12px",
             fontWeight: 600,
+            letterSpacing: "-0.01em",
             cursor: "pointer",
             border:
               currentSort === "oldest"
-                ? "1.5px solid var(--color-accent)"
-                : "1px solid var(--color-border)",
+                ? "1px solid #005bb5"
+                : "1px solid #0f172a",
             background:
               currentSort === "oldest"
-                ? "rgba(0, 113, 227, 0.08)"
-                : "var(--color-bg-card)",
-            color:
-              currentSort === "oldest"
                 ? "var(--color-accent)"
-                : "var(--color-text-secondary)",
-            boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
-            transition: "all 150ms cubic-bezier(0.16, 1, 0.3, 1)",
+                : "#1e293b",
+            color: "#ffffff",
+            boxShadow:
+              currentSort === "oldest"
+                ? "0 2px 8px rgba(0, 113, 227, 0.35)"
+                : "0 2px 6px rgba(15, 23, 42, 0.16)",
+            transition: "all 180ms cubic-bezier(0.16, 1, 0.3, 1)",
             userSelect: "none",
           }}
           title={
             currentSort === "oldest"
-              ? "Currently showing Oldest First. Click to switch to Latest First."
-              : "Currently showing Latest First (Default). Click to switch to Oldest First."
+              ? "Currently sorted Oldest First. Click to switch to Latest First."
+              : "Currently sorted Latest First (Default). Click to switch to Oldest First."
           }
         >
-          <ArrowUpDown size={11} strokeWidth={2.4} style={{ flexShrink: 0 }} />
-          <span>{currentSort === "oldest" ? "Oldest First" : "Latest First"}</span>
+          <ArrowUpDown
+            size={12}
+            strokeWidth={2.5}
+            style={{
+              flexShrink: 0,
+              color: currentSort === "oldest" ? "#ffffff" : "#94a3b8",
+            }}
+          />
+          <span>Sort: {currentSort === "oldest" ? "Oldest First" : "Latest First"}</span>
         </button>
       </div>
     </div>

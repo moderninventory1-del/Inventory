@@ -29,14 +29,17 @@ export default function LoginForm() {
         username: username.trim(),
         password,
         redirect: false,
+        callbackUrl: "/admin",
       });
 
-      if (result?.error) {
+      if (result?.error || !result?.ok) {
         toast.error("Invalid credentials. Please try again.");
         setIsLoading(false);
       } else {
-        toast.success("Welcome back!");
-        window.location.href = "/admin";
+        toast.success("Welcome back! Loading admin…");
+        setTimeout(() => {
+          window.location.replace(result?.url || "/admin");
+        }, 150);
       }
     } catch {
       toast.error("Something went wrong. Please try again.");

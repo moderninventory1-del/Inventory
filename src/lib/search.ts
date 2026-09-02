@@ -227,6 +227,7 @@ export async function searchAdminInventory({
     OR i.description ~* $${pRegex}
     OR b.name ~* $${pRegex}
     OR i."boxLocation" ~* $${pRegex}
+    OR i.id ILIKE $${pSearch}
   )`);
 
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
@@ -249,10 +250,12 @@ export async function searchAdminInventory({
       CASE
         WHEN i."modelNumber" ILIKE $${pSearch} THEN 1
         WHEN i."modelNumber" ~* $${pRegex} THEN 2
-        WHEN b.name ILIKE $${pSearch} THEN 3
-        WHEN i.description ILIKE $${pSearch} THEN 4
-        WHEN i.description ~* $${pRegex} THEN 5
-        ELSE 6
+        WHEN i.id ILIKE $${pSearch} THEN 3
+        WHEN b.name ILIKE $${pSearch} THEN 4
+        WHEN i.description ILIKE $${pSearch} THEN 5
+        WHEN i.description ~* $${pRegex} THEN 6
+        WHEN i."boxLocation" ~* $${pRegex} THEN 7
+        ELSE 8
       END as rank
     FROM "InventoryItem" i
     LEFT JOIN "Brand" b ON i."brandId" = b.id
