@@ -1,0 +1,43 @@
+generator client {
+  provider   = "prisma-client-js"
+  output     = "../src/generated/prisma"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Brand {
+  id        String          @id @default(cuid())
+  name      String          @unique
+  createdAt DateTime        @default(now())
+  items     InventoryItem[]
+}
+
+model Category {
+  id        String          @id @default(cuid())
+  name      String          @unique
+  createdAt DateTime        @default(now())
+}
+
+model InventoryItem {
+  id          String       @id @default(cuid())
+  modelNumber String
+  brandId     String
+  brand       Brand        @relation(fields: [brandId], references: [id])
+  category    String
+  boxLocation String?      // admin-only field
+  description String?      @db.Text
+  frontImage  String       // Cloudinary secure URL
+  backImage   String?      // optional Cloudinary secure URL
+  isDeleted   Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  deletedAt   DateTime?
+
+  @@index([isDeleted])
+  @@index([category])
+  @@index([brandId])
+  @@index([createdAt(sort: Desc)])
+}
