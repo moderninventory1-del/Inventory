@@ -10,6 +10,7 @@ const DATA_CACHE = `data-${CACHE_VERSION}`;
 const PRECACHE_ASSETS = [
   "/",
   "/manifest.webmanifest",
+  "/manifest-admin.webmanifest",
   "/icon.svg",
   "/icon-192x192.png",
   "/icon-512x512.png",

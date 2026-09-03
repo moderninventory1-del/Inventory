@@ -12,6 +12,12 @@ export const metadata: Metadata = {
     default: "Admin | TV Inventory",
     template: "%s | Admin",
   },
+  manifest: "/manifest-admin.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Admin Portal",
+  },
   robots: { index: false, follow: false },
 };
 
@@ -22,6 +28,7 @@ export default function AdminLayout({
 }) {
   return (
     <MobileMenuProvider>
+      <link rel="manifest" href="/manifest-admin.webmanifest" />
       <div style={{ display: "flex", minHeight: "100dvh", background: "var(--color-bg-primary)" }}>
         {/* Desktop Sidebar (visible on md+) */}
         <AdminSidebar />

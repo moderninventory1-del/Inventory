@@ -33,7 +33,7 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: "/manifest.webmanifest",
+        source: "/:path*(manifest.webmanifest|manifest-admin.webmanifest)",
         headers: [
           {
             key: "Cache-Control",
