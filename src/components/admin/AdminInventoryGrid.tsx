@@ -1,12 +1,14 @@
 "use client";
 // src/components/admin/AdminInventoryGrid.tsx
 // Admin inventory grid — preloads next 15 items when scrolling to 10th item
+// Preserves loaded items and scroll position across back-navigation
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import AdminItemCard from "./AdminItemCard";
 import AdminItemCardSkeleton from "./AdminItemCardSkeleton";
 import type { InventoryItem, PaginatedResponse } from "@/types";
 import { Loader2, PackageSearch } from "lucide-react";
+import { getScrollCache, saveScrollCache } from "@/lib/scroll-cache";
 
 interface AdminInventoryGridProps {
   initialData: PaginatedResponse<InventoryItem>;
@@ -19,6 +21,8 @@ interface AdminInventoryGridProps {
   sort?: string;
 }
 
+const ADMIN_STORAGE_KEY = "admin_inventory_scroll_cache";
+
 export default function AdminInventoryGrid({
   initialData,
   search,
@@ -29,22 +33,79 @@ export default function AdminInventoryGrid({
   showDeleted,
   sort,
 }: AdminInventoryGridProps) {
-  const [items, setItems]               = useState<InventoryItem[]>(initialData.items);
-  const [cursor, setCursor]             = useState<string | null>(initialData.nextCursor);
+  const cacheKey = `${search}|${category}|${brandId}|${box || ""}|${status}|${showDeleted}|${sort || ""}`;
+
+  // Initialize from cache if navigating back, otherwise use server initialData
+  const [items, setItems] = useState<InventoryItem[]>(() => {
+    const cached = getScrollCache<InventoryItem>(ADMIN_STORAGE_KEY, cacheKey);
+    return cached && cached.items.length > 0 ? cached.items : initialData.items;
+  });
+
+  const [cursor, setCursor] = useState<string | null>(() => {
+    const cached = getScrollCache<InventoryItem>(ADMIN_STORAGE_KEY, cacheKey);
+    return cached ? cached.cursor : initialData.nextCursor;
+  });
+
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasError, setHasError]         = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   // Trigger index: at 10 items (index 9 in a 15-item batch, or items.length - 6)
   const triggerIndex = Math.max(0, items.length - 6);
   const triggerRef = useRef<HTMLDivElement | null>(null);
   const bottomSentinelRef = useRef<HTMLDivElement | null>(null);
 
-  // Reset when filters change (new initialData from server)
+  const isRestoredRef = useRef(false);
+  const prevKeyRef = useRef(cacheKey);
+
+  // Restore scroll position when returning back
   useEffect(() => {
-    setItems(initialData.items);
-    setCursor(initialData.nextCursor);
-    setHasError(false);
-  }, [initialData]);
+    const cached = getScrollCache<InventoryItem>(ADMIN_STORAGE_KEY, cacheKey);
+    if (cached && cached.scrollY > 0 && !isRestoredRef.current) {
+      isRestoredRef.current = true;
+      const targetY = cached.scrollY;
+
+      // Multi-step instant scroll to override any default browser or Next.js scroll-to-top actions
+      const timers = [0, 20, 60, 140, 300].map((delay) =>
+        setTimeout(() => {
+          window.scrollTo({ top: targetY, behavior: "instant" });
+        }, delay)
+      );
+
+      return () => timers.forEach(clearTimeout);
+    }
+  }, [cacheKey]);
+
+  // When filters change explicitly, reset to initialData
+  useEffect(() => {
+    if (prevKeyRef.current !== cacheKey) {
+      prevKeyRef.current = cacheKey;
+      isRestoredRef.current = false;
+      setItems(initialData.items);
+      setCursor(initialData.nextCursor);
+      setHasError(false);
+      saveScrollCache(ADMIN_STORAGE_KEY, cacheKey, initialData.items, initialData.nextCursor, 0);
+    }
+  }, [initialData, cacheKey]);
+
+  // Debounced scroll listener to continuously save position
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    const handleScroll = () => {
+      if (window.scrollY === 0 && isRestoredRef.current) {
+        return;
+      }
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        saveScrollCache(ADMIN_STORAGE_KEY, cacheKey, items, cursor, window.scrollY);
+      }, 120);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [cacheKey, items, cursor]);
 
   const loadMore = useCallback(async () => {
     if (!cursor || isLoadingMore) return;
@@ -53,27 +114,31 @@ export default function AdminInventoryGrid({
 
     try {
       const params = new URLSearchParams();
-      if (search)   params.set("search",   search);
+      if (search) params.set("search", search);
       if (category) params.set("category", category);
-      if (brandId)  params.set("brand",    brandId);
-      if (box)      params.set("box",      box);
-      if (status)   params.set("status",   status);
-      if (sort)     params.set("sort",     sort);
-      if (cursor)   params.set("cursor",   cursor);
+      if (brandId) params.set("brand", brandId);
+      if (box) params.set("box", box);
+      if (status) params.set("status", status);
+      if (sort) params.set("sort", sort);
+      if (cursor) params.set("cursor", cursor);
       params.set("limit", "15");
 
       const res = await fetch(`/api/admin/inventory?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch");
 
       const data: PaginatedResponse<InventoryItem> = await res.json();
-      setItems((prev) => [...prev, ...data.items]);
+      setItems((prev) => {
+        const nextItems = [...prev, ...data.items];
+        saveScrollCache(ADMIN_STORAGE_KEY, cacheKey, nextItems, data.nextCursor, window.scrollY);
+        return nextItems;
+      });
       setCursor(data.nextCursor);
     } catch {
       setHasError(true);
     } finally {
       setIsLoadingMore(false);
     }
-  }, [cursor, isLoadingMore, search, category, brandId, status, sort]);
+  }, [cursor, isLoadingMore, search, category, brandId, box, status, sort, cacheKey]);
 
   // IntersectionObserver: triggers loadMore when 10th item or bottom sentinel comes into view
   useEffect(() => {

@@ -32,6 +32,16 @@ export default function AdminBottomNav() {
     return pathname === "/admin/inventory/new";
   }
 
+  // Hide bottom navigation bar on item view page (e.g. /admin/inventory/[id])
+  const isItemView =
+    pathname.startsWith("/admin/inventory/") &&
+    pathname !== "/admin/inventory/new" &&
+    !pathname.endsWith("/edit");
+
+  if (isItemView) {
+    return null;
+  }
+
   return (
     <>
       <nav

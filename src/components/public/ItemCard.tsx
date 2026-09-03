@@ -1,6 +1,8 @@
+"use client";
 // src/components/public/ItemCard.tsx
 // Public inventory card — no box location exposed
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Tv2 } from "lucide-react";
@@ -12,6 +14,8 @@ interface ItemCardProps {
 }
 
 export default function ItemCard({ item }: ItemCardProps) {
+  const [imgLoaded, setImgLoaded] = useState(false);
+
   return (
     <Link
       href={`/item/${item.id}`}
@@ -37,13 +41,29 @@ export default function ItemCard({ item }: ItemCardProps) {
             flexShrink: 0,
           }}
         >
+          {!imgLoaded && (
+            <div
+              className="skeleton"
+              style={{
+                position: "absolute",
+                inset: 0,
+                zIndex: 1,
+              }}
+            />
+          )}
           <Image
             src={item.frontImage}
             alt={`${item.brand.name} ${item.modelNumber}`}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            style={{ objectFit: "contain", padding: "16px" }}
+            style={{
+              objectFit: "contain",
+              padding: "16px",
+              opacity: imgLoaded ? 1 : 0,
+              transition: "opacity 240ms ease-out",
+            }}
             loading="lazy"
+            onLoad={() => setImgLoaded(true)}
           />
           {/* Category badge overlay */}
           <div

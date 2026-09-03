@@ -3,6 +3,7 @@
 
 import type { Metadata } from "next";
 import LoginForm from "@/components/auth/LoginForm";
+import BrandLogo from "@/components/shared/BrandLogo";
 
 export const metadata: Metadata = {
   title: "Admin Login",
@@ -34,10 +35,10 @@ export default function LoginPage() {
               borderRadius: "var(--radius-md)",
               background: "var(--gradient-accent)",
               marginBottom: "16px",
-              fontSize: "24px",
+              boxShadow: "0 4px 16px rgba(37, 99, 235, 0.3)",
             }}
           >
-            📺
+            <BrandLogo size={32} color="#ffffff" />
           </div>
           <h1
             style={{

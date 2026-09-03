@@ -3,8 +3,9 @@
 // Premium storefront hero header + sticky search bar that smoothly slides to the top when clicked/focused
 
 import { useState, useCallback, useRef } from "react";
-import { MapPin, Phone, Tv } from "lucide-react";
+import { MapPin, Phone } from "lucide-react";
 import SearchFilterBar from "@/components/shared/SearchFilterBar";
+import BrandLogo from "@/components/shared/BrandLogo";
 
 interface PublicPageHeaderProps {
   brands: { id: string; name: string }[];
@@ -36,7 +37,7 @@ export default function PublicPageHeader({
           {/* Top Brand Line: Logo Badge + Title + Live Indicator */}
           <div className="hero-top-row">
             <div className="hero-brand-badge" aria-hidden="true">
-              <Tv size={22} strokeWidth={2.4} />
+              <BrandLogo size={24} color="#ffffff" />
             </div>
 
             <div style={{ flex: 1, minWidth: 0 }}>

@@ -6,6 +6,7 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { MapPin, Phone, ArrowLeft } from "lucide-react";
+import BrandLogo from "@/components/shared/BrandLogo";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -54,18 +55,18 @@ export default function Navbar() {
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              width: "32px",
-              height: "32px",
-              borderRadius: "50%",
-              background: "var(--color-bg-surface)",
-              border: "1px solid var(--color-border)",
-              color: "var(--color-text-primary)",
-              textDecoration: "none",
+              width: "36px",
+              height: "36px",
+              borderRadius: "10px",
+              background: "#ffffff",
+              border: "1px solid rgba(0, 0, 0, 0.08)",
+              boxShadow: "0 1px 4px rgba(0, 0, 0, 0.04)",
               flexShrink: 0,
+              textDecoration: "none",
             }}
-            title="Back to inventory"
+            title="Modern Electronics Home"
           >
-            <ArrowLeft size={16} />
+            <BrandLogo size={24} color="#2563EB" />
           </Link>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "2px", minWidth: 0 }}>

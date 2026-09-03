@@ -1,13 +1,29 @@
 "use client";
 // src/components/public/ScrollToTopProgress.tsx
 // Premium Apple-style scroll-to-top button with circular scroll progress ring
+// Positioned with clean clearance above mobile bottom navigation bar
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { ArrowUp } from "lucide-react";
 
-export default function ScrollToTopProgress() {
+interface ScrollToTopProgressProps {
+  isAdmin?: boolean;
+}
+
+export default function ScrollToTopProgress({ isAdmin = false }: ScrollToTopProgressProps) {
+  const pathname = usePathname();
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+
+  // Check if admin bottom nav is active on this route
+  const hasBottomNav =
+    isAdmin &&
+    !(
+      pathname?.startsWith("/admin/inventory/") &&
+      pathname !== "/admin/inventory/new" &&
+      !pathname?.endsWith("/edit")
+    );
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,8 +56,8 @@ export default function ScrollToTopProgress() {
 
   // SVG circular metrics
   const size = 44;
-  const strokeWidth = 2.5;
-  const radius = (size - strokeWidth * 2) / 2;
+  const strokeWidth = 3;
+  const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (scrollProgress / 100) * circumference;
 
@@ -51,17 +67,17 @@ export default function ScrollToTopProgress() {
       onClick={scrollToTop}
       aria-label="Scroll to top"
       title={`Scroll to top (${Math.round(scrollProgress)}% scrolled)`}
-      className={`scroll-to-top-btn ${isVisible ? "visible" : ""}`}
+      className={`scroll-to-top-btn ${isVisible ? "visible" : ""} ${hasBottomNav ? "has-bottom-nav" : ""}`}
       style={{
         position: "fixed",
         bottom: "max(24px, env(safe-area-inset-bottom, 24px))",
         right: "20px",
-        zIndex: 45,
+        zIndex: 55,
         width: `${size}px`,
         height: `${size}px`,
         borderRadius: "50%",
         border: "none",
-        background: "rgba(255, 255, 255, 0.9)",
+        background: "rgba(255, 255, 255, 0.92)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
         boxShadow: "0 4px 20px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.06)",
@@ -139,6 +155,20 @@ export default function ScrollToTopProgress() {
 
         .scroll-to-top-btn:active {
           transform: scale(0.92) !important;
+        }
+
+        /* Float cleanly above AdminBottomNav on mobile devices */
+        @media (max-width: 767px) {
+          .scroll-to-top-btn.has-bottom-nav {
+            bottom: calc(88px + env(safe-area-inset-bottom, 12px)) !important;
+          }
+        }
+
+        /* Natural position on desktop or pages without bottom nav */
+        @media (min-width: 768px) {
+          .scroll-to-top-btn.has-bottom-nav {
+            bottom: max(24px, env(safe-area-inset-bottom, 24px)) !important;
+          }
         }
       `}</style>
     </button>

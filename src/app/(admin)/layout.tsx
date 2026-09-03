@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminBottomNav from "@/components/admin/AdminBottomNav";
 import { MobileMenuProvider } from "@/components/admin/MobileMenuContext";
+import ScrollToTopProgress from "@/components/public/ScrollToTopProgress";
 
 export const metadata: Metadata = {
   title: {
@@ -38,6 +39,9 @@ export default function AdminLayout({
             {children}
           </main>
         </div>
+
+        {/* Circular Scroll To Top Progress Indicator */}
+        <ScrollToTopProgress isAdmin />
 
         {/* Mobile Bottom Navigation (visible on < md) */}
         <AdminBottomNav />

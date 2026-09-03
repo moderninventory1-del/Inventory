@@ -1,12 +1,14 @@
 "use client";
 // src/components/public/InventoryGrid.tsx
 // Infinite-scroll inventory grid — preloads next 15 items when scrolling to 10th item
+// Preserves loaded items and scroll position across back-navigation
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import ItemCard from "./ItemCard";
 import ItemCardSkeleton from "./ItemCardSkeleton";
 import type { PublicInventoryItem, PaginatedResponse } from "@/types";
 import { Loader2, PackageSearch } from "lucide-react";
+import { getScrollCache, saveScrollCache } from "@/lib/scroll-cache";
 
 interface InventoryGridProps {
   initialData: PaginatedResponse<PublicInventoryItem>;
@@ -16,6 +18,8 @@ interface InventoryGridProps {
   sort?: string;
 }
 
+const STORAGE_KEY = "user_inventory_scroll_cache";
+
 export default function InventoryGrid({
   initialData,
   search,
@@ -23,8 +27,19 @@ export default function InventoryGrid({
   brandId,
   sort,
 }: InventoryGridProps) {
-  const [items, setItems] = useState<PublicInventoryItem[]>(initialData.items);
-  const [cursor, setCursor] = useState<string | null>(initialData.nextCursor);
+  const cacheKey = `${search}|${category}|${brandId}|${sort || ""}`;
+
+  // Initialize from cache if navigating back, otherwise use server initialData
+  const [items, setItems] = useState<PublicInventoryItem[]>(() => {
+    const cached = getScrollCache<PublicInventoryItem>(STORAGE_KEY, cacheKey);
+    return cached && cached.items.length > 0 ? cached.items : initialData.items;
+  });
+
+  const [cursor, setCursor] = useState<string | null>(() => {
+    const cached = getScrollCache<PublicInventoryItem>(STORAGE_KEY, cacheKey);
+    return cached ? cached.cursor : initialData.nextCursor;
+  });
+
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasError, setHasError] = useState(false);
 
@@ -33,12 +48,58 @@ export default function InventoryGrid({
   const triggerRef = useRef<HTMLDivElement | null>(null);
   const bottomSentinelRef = useRef<HTMLDivElement | null>(null);
 
-  // Reset when filters change
+  const isRestoredRef = useRef(false);
+  const prevKeyRef = useRef(cacheKey);
+
+  // Restore scroll position when returning back
   useEffect(() => {
-    setItems(initialData.items);
-    setCursor(initialData.nextCursor);
-    setHasError(false);
-  }, [initialData]);
+    const cached = getScrollCache<PublicInventoryItem>(STORAGE_KEY, cacheKey);
+    if (cached && cached.scrollY > 0 && !isRestoredRef.current) {
+      isRestoredRef.current = true;
+      const targetY = cached.scrollY;
+
+      // Multi-step instant scroll to override any default browser or Next.js scroll-to-top actions
+      const timers = [0, 20, 60, 140, 300].map((delay) =>
+        setTimeout(() => {
+          window.scrollTo({ top: targetY, behavior: "instant" });
+        }, delay)
+      );
+
+      return () => timers.forEach(clearTimeout);
+    }
+  }, [cacheKey]);
+
+  // When filters change explicitly, reset to initialData
+  useEffect(() => {
+    if (prevKeyRef.current !== cacheKey) {
+      prevKeyRef.current = cacheKey;
+      isRestoredRef.current = false;
+      setItems(initialData.items);
+      setCursor(initialData.nextCursor);
+      setHasError(false);
+      saveScrollCache(STORAGE_KEY, cacheKey, initialData.items, initialData.nextCursor, 0);
+    }
+  }, [initialData, cacheKey]);
+
+  // Debounced scroll listener to continuously save position
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    const handleScroll = () => {
+      if (window.scrollY === 0 && isRestoredRef.current) {
+        return;
+      }
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        saveScrollCache(STORAGE_KEY, cacheKey, items, cursor, window.scrollY);
+      }, 120);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [cacheKey, items, cursor]);
 
   const loadMore = useCallback(async () => {
     if (!cursor || isLoadingMore) return;
@@ -58,14 +119,18 @@ export default function InventoryGrid({
       if (!res.ok) throw new Error("Failed to fetch");
 
       const data: PaginatedResponse<PublicInventoryItem> = await res.json();
-      setItems((prev) => [...prev, ...data.items]);
+      setItems((prev) => {
+        const nextItems = [...prev, ...data.items];
+        saveScrollCache(STORAGE_KEY, cacheKey, nextItems, data.nextCursor, window.scrollY);
+        return nextItems;
+      });
       setCursor(data.nextCursor);
     } catch {
       setHasError(true);
     } finally {
       setIsLoadingMore(false);
     }
-  }, [cursor, isLoadingMore, search, category, brandId, sort]);
+  }, [cursor, isLoadingMore, search, category, brandId, sort, cacheKey]);
 
   // IntersectionObserver: triggers loadMore when 10th item or bottom sentinel comes into view
   useEffect(() => {

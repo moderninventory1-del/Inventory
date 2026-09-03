@@ -23,6 +23,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import ItemPhotoGallery from "@/components/public/ItemPhotoGallery";
+import BackButton from "@/components/shared/BackButton";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -73,10 +74,12 @@ export default async function AdminItemDetailPage({ params }: PageProps) {
     <div className="admin-detail-page-container">
       {/* ── 1. Top Navigation Bar (Apple-styled on mobile & desktop) ── */}
       <header className="admin-detail-nav">
-        <Link href="/admin/inventory" className="nav-back-pill" title="Back to inventory list">
-          <ArrowLeft size={16} strokeWidth={2.4} />
-          <span>Inventory</span>
-        </Link>
+        <BackButton
+          fallbackHref="/admin/inventory"
+          label="Inventory"
+          className="nav-back-pill"
+          title="Back to inventory list"
+        />
 
         <div className="nav-actions">
           <Link
@@ -610,6 +613,12 @@ export default async function AdminItemDetailPage({ params }: PageProps) {
         @media (max-width: 767px) {
           .nav-btn-text {
             display: none;
+          }
+          .admin-bottom-nav {
+            display: none !important;
+          }
+          .scroll-to-top-btn.is-admin {
+            bottom: max(24px, env(safe-area-inset-bottom, 24px)) !important;
           }
         }
 

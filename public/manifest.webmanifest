@@ -1,0 +1,55 @@
+{
+  "id": "/",
+  "name": "Modern Electronics — TV Spare Parts Inventory",
+  "short_name": "Modern Electronics",
+  "description": "Genuine TV spare parts, motherboards, power supplies, and TV components inventory.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#FFFFFF",
+  "theme_color": "#2563EB",
+  "categories": ["business", "shopping", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Spare Parts Catalog",
+      "short_name": "Inventory",
+      "description": "View all available TV spare parts",
+      "url": "/",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Admin Portal",
+      "short_name": "Admin",
+      "description": "Manage inventory and boxes",
+      "url": "/admin",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

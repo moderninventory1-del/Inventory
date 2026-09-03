@@ -12,6 +12,7 @@ import {
   Tv2,
   LogOut,
 } from "lucide-react";
+import BrandLogo from "@/components/shared/BrandLogo";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -60,7 +61,7 @@ export default function AdminSidebar() {
             flexShrink: 0,
           }}
         >
-          <Tv2 size={18} color="#fff" />
+          <BrandLogo size={20} color="#fff" />
         </div>
         <div>
           <p style={{ fontSize: "13px", fontWeight: 700, color: "var(--color-text-primary)" }}>

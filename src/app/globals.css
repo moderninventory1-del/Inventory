@@ -20,12 +20,12 @@
   --color-border: rgba(0, 0, 0, 0.08);
   --color-border-hover: rgba(0, 0, 0, 0.16);
 
-  /* Accents — Apple Blue */
-  --color-accent: #0071e3;
-  --color-accent-hover: #0077ed;
-  --color-accent-glow: rgba(0, 113, 227, 0.08);
-  --color-accent-text: #0071e3;
-  --gradient-accent: linear-gradient(135deg, #0071e3 0%, #47a3f3 100%);
+  /* Accents — Primary Blue #2563EB (Brand Guidelines) */
+  --color-accent: #2563eb;
+  --color-accent-hover: #1d4ed8;
+  --color-accent-glow: rgba(37, 99, 235, 0.08);
+  --color-accent-text: #2563eb;
+  --gradient-accent: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
 
   /* Semantic Feedback */
   --color-success: #34c759;
@@ -37,7 +37,7 @@
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.03), 0 4px 14px rgba(0, 0, 0, 0.03);
   --shadow-card-hover: 0 6px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.03);
   --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.06);
-  --shadow-input-focus: 0 0 0 3px rgba(0, 113, 227, 0.15);
+  --shadow-input-focus: 0 0 0 3px rgba(37, 99, 235, 0.18);
 
   /* Radii */
   --radius-sm: 8px;

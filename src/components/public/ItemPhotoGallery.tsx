@@ -1,7 +1,7 @@
 "use client";
 // src/components/public/ItemPhotoGallery.tsx
 // Pure plain black background photo viewer with native side-by-side seek-through carousel swiping,
-// swipe-down to dismiss, and all-directional zoom with strict boundary edge grasping (prevents photo moving out of screen).
+// swipe-down to dismiss, and all-directional zoom with smooth movement and boundary edge grasping.
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
@@ -26,6 +26,10 @@ export default function ItemPhotoGallery({
   const [isOpen, setIsOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  // Image loaded state for skeleton loading shimmer
+  const [isFrontLoaded, setIsFrontLoaded] = useState(false);
+  const [isBackLoaded, setIsBackLoaded] = useState(false);
+
   // Gesture and transform states
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -36,9 +40,22 @@ export default function ItemPhotoGallery({
   // Active image element reference for precise edge calculations
   const activeImgRef = useRef<HTMLImageElement | null>(null);
 
+  // Real-time synced refs to prevent stale closure blocks during high-frequency gestures
+  const currentScaleRef = useRef(1);
+  const currentPanRef = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    currentScaleRef.current = scale;
+  }, [scale]);
+
+  useEffect(() => {
+    currentPanRef.current = pan;
+  }, [pan]);
+
   // Gesture tracking refs
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const pinchStartDistRef = useRef<number | null>(null);
+  const pinchStartMidRef = useRef<{ x: number; y: number } | null>(null);
   const startScaleRef = useRef(1);
   const startPanRef = useRef({ x: 0, y: 0 });
   const gestureModeRef = useRef<"idle" | "pan" | "dismiss" | "swipe" | "pinch">("idle");
@@ -65,9 +82,9 @@ export default function ItemPhotoGallery({
     };
   }, [isOpen]);
 
-  // ── Precise Edge Grasping & Boundary Clamping Math ──
+  // ── Precise Edge Grasping & Free Movement Math ──
   const getPanBounds = useCallback((targetScale: number) => {
-    if (typeof window === "undefined") {
+    if (typeof window === "undefined" || targetScale <= 1.01) {
       return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
     }
 
@@ -78,21 +95,38 @@ export default function ItemPhotoGallery({
     let baseH = vpH;
 
     if (activeImgRef.current) {
-      baseW = activeImgRef.current.clientWidth || vpW;
-      baseH = activeImgRef.current.clientHeight || vpH;
+      const nw = activeImgRef.current.naturalWidth;
+      const nh = activeImgRef.current.naturalHeight;
+      if (nw > 0 && nh > 0) {
+        const imgAspect = nw / nh;
+        const vpAspect = vpW / vpH;
+        if (imgAspect > vpAspect) {
+          baseW = vpW;
+          baseH = vpW / imgAspect;
+        } else {
+          baseH = vpH;
+          baseW = vpH * imgAspect;
+        }
+      } else {
+        baseW = activeImgRef.current.clientWidth || vpW;
+        baseH = activeImgRef.current.clientHeight || vpH;
+      }
     }
 
     const scaledW = baseW * targetScale;
     const scaledH = baseH * targetScale;
 
-    // The maximum distance the photo center can travel before an edge separates from the screen edge
-    const maxX = Math.max(0, (scaledW - vpW) / 2);
-    const minX = -maxX;
+    // When scaled dimension > viewport: clamp so edges grasp the screen boundaries (no empty space).
+    // When scaled dimension <= viewport: allow free movement across the screen without going out of screen!
+    const maxX = scaledW > vpW ? (scaledW - vpW) / 2 : (vpW - scaledW) / 2;
+    const maxY = scaledH > vpH ? (scaledH - vpH) / 2 : (vpH - scaledH) / 2;
 
-    const maxY = Math.max(0, (scaledH - vpH) / 2);
-    const minY = -maxY;
-
-    return { minX, maxX, minY, maxY };
+    return {
+      minX: -maxX,
+      maxX: maxX,
+      minY: -maxY,
+      maxY: maxY,
+    };
   }, []);
 
   const clampPan = useCallback(
@@ -114,15 +148,15 @@ export default function ItemPhotoGallery({
       let y = rawPan.y;
 
       if (x > maxX) {
-        x = maxX + (x - maxX) * 0.25;
+        x = maxX + (x - maxX) * 0.3;
       } else if (x < minX) {
-        x = minX + (x - minX) * 0.25;
+        x = minX + (x - minX) * 0.3;
       }
 
       if (y > maxY) {
-        y = maxY + (y - maxY) * 0.25;
+        y = maxY + (y - maxY) * 0.3;
       } else if (y < minY) {
-        y = minY + (y - minY) * 0.25;
+        y = minY + (y - minY) * 0.3;
       }
 
       return { x, y };
@@ -159,7 +193,7 @@ export default function ItemPhotoGallery({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") closeViewer();
       else if (e.key === "ArrowRight") {
-        if (currentIndex < images.length - 1 && scale === 1) {
+        if (currentIndex < images.length - 1 && scale <= 1.01) {
           setIsTransitioning(true);
           setCurrentIndex((prev) => prev + 1);
           setScale(1);
@@ -167,7 +201,7 @@ export default function ItemPhotoGallery({
           setTimeout(() => setIsTransitioning(false), 240);
         }
       } else if (e.key === "ArrowLeft") {
-        if (currentIndex > 0 && scale === 1) {
+        if (currentIndex > 0 && scale <= 1.01) {
           setIsTransitioning(true);
           setCurrentIndex((prev) => prev - 1);
           setScale(1);
@@ -183,7 +217,7 @@ export default function ItemPhotoGallery({
   // Double tap to toggle zoom with edge clamping
   const handleDoubleTap = (clientX: number, clientY: number) => {
     setIsTransitioning(true);
-    if (scale > 1) {
+    if (scale > 1.01) {
       setScale(1);
       setPan({ x: 0, y: 0 });
     } else {
@@ -193,7 +227,6 @@ export default function ItemPhotoGallery({
       const centerY = window.innerHeight / 2;
       const rawPanX = (centerX - clientX) * 1.5;
       const rawPanY = (centerY - clientY) * 1.5;
-      // Clamps immediately to screen edges
       setPan(clampPan({ x: rawPanX, y: rawPanY }, nextScale));
     }
     setTimeout(() => setIsTransitioning(false), 220);
@@ -205,10 +238,9 @@ export default function ItemPhotoGallery({
     const delta = -e.deltaY * 0.003;
     const nextScale = Math.min(Math.max(1, scale + delta), 4.5);
     setScale(nextScale);
-    if (nextScale === 1) {
+    if (nextScale <= 1.01) {
       setPan({ x: 0, y: 0 });
     } else {
-      // Keep clamped to edges while zooming
       setPan((prev) => clampPan(prev, nextScale));
     }
   };
@@ -216,24 +248,25 @@ export default function ItemPhotoGallery({
   // Desktop Mouse Drag / Swipe
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return;
+    setIsTransitioning(false);
     isMouseDownRef.current = true;
     mouseStartRef.current = { x: e.clientX, y: e.clientY };
-    startPanRef.current = { ...pan };
-    gestureModeRef.current = scale > 1 ? "pan" : "idle";
+    startPanRef.current = { ...currentPanRef.current };
+    gestureModeRef.current = currentScaleRef.current > 1.01 ? "pan" : "idle";
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isMouseDownRef.current) return;
     const dx = e.clientX - mouseStartRef.current.x;
     const dy = e.clientY - mouseStartRef.current.y;
+    const activeScale = currentScaleRef.current;
 
-    if (scale > 1) {
-      // Rubber-band resistance at edges during pan
+    if (activeScale > 1.01) {
       const targetPan = {
         x: startPanRef.current.x + dx,
         y: startPanRef.current.y + dy,
       };
-      setPan(applyRubberBand(targetPan, scale));
+      setPan(applyRubberBand(targetPan, activeScale));
     } else {
       if (gestureModeRef.current === "idle") {
         if (Math.abs(dy) > Math.abs(dx) && dy > 5) {
@@ -254,11 +287,11 @@ export default function ItemPhotoGallery({
   const handleMouseUp = () => {
     if (!isMouseDownRef.current) return;
     isMouseDownRef.current = false;
+    const activeScale = currentScaleRef.current;
 
-    if (scale > 1) {
-      // Snap flush back to edges if dragged past rubber-band limit
+    if (activeScale > 1.01) {
       setIsTransitioning(true);
-      setPan((prev) => clampPan(prev, scale));
+      setPan((prev) => clampPan(prev, activeScale));
       setTimeout(() => setIsTransitioning(false), 180);
       return;
     }
@@ -284,15 +317,22 @@ export default function ItemPhotoGallery({
     setTimeout(() => setIsTransitioning(false), 220);
   };
 
-  // ── Touch Events (Mobile Pinch, Real Side-by-Side Swipe, Pull Down) ──
+  // ── Mobile Touch Events (Pinch-to-zoom + Pan simultaneously, 1-Finger move, Swipe seek) ──
   const handleTouchStart = (e: React.TouchEvent) => {
+    setIsTransitioning(false);
+
     if (e.touches.length === 2) {
       gestureModeRef.current = "pinch";
       const t1 = e.touches[0];
       const t2 = e.touches[1];
       pinchStartDistRef.current = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
-      startScaleRef.current = scale;
-      startPanRef.current = { ...pan };
+      pinchStartMidRef.current = {
+        x: (t1.clientX + t2.clientX) / 2,
+        y: (t1.clientY + t2.clientY) / 2,
+      };
+      startScaleRef.current = currentScaleRef.current;
+      startPanRef.current = { ...currentPanRef.current };
+      touchStartRef.current = null;
       return;
     }
 
@@ -300,7 +340,7 @@ export default function ItemPhotoGallery({
       const touch = e.touches[0];
       const now = Date.now();
 
-      // Double tap to zoom
+      // Double tap to toggle zoom
       if (now - lastTapRef.current < 260) {
         handleDoubleTap(touch.clientX, touch.clientY);
         lastTapRef.current = 0;
@@ -309,40 +349,55 @@ export default function ItemPhotoGallery({
       lastTapRef.current = now;
 
       touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: now };
-      startPanRef.current = { ...pan };
-      gestureModeRef.current = scale > 1 ? "pan" : "idle";
+      startPanRef.current = { ...currentPanRef.current };
+      gestureModeRef.current = currentScaleRef.current > 1.01 ? "pan" : "idle";
     }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length === 2 && pinchStartDistRef.current) {
+    // 2-Finger Pinch Zoom + Simultaneous Midpoint Pan
+    if (e.touches.length === 2 && pinchStartDistRef.current && pinchStartMidRef.current) {
       const t1 = e.touches[0];
       const t2 = e.touches[1];
       const currentDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
       const factor = currentDist / pinchStartDistRef.current;
-      const nextScale = Math.min(Math.max(1, startScaleRef.current * factor), 4.5);
+      const nextScale = Math.min(Math.max(1, startScaleRef.current * factor), 5);
       setScale(nextScale);
-      if (nextScale <= 1) {
+
+      // Midpoint pan during pinch
+      const currentMid = {
+        x: (t1.clientX + t2.clientX) / 2,
+        y: (t1.clientY + t2.clientY) / 2,
+      };
+      const midDx = currentMid.x - pinchStartMidRef.current.x;
+      const midDy = currentMid.y - pinchStartMidRef.current.y;
+
+      if (nextScale <= 1.01) {
         setPan({ x: 0, y: 0 });
       } else {
-        // Clamp edges continuously as you pinch
-        setPan((prev) => clampPan(prev, nextScale));
+        const rawPan = {
+          x: startPanRef.current.x + midDx,
+          y: startPanRef.current.y + midDy,
+        };
+        setPan(applyRubberBand(rawPan, nextScale));
       }
       return;
     }
 
+    // 1-Finger Pan / Swipe
     if (e.touches.length === 1 && touchStartRef.current) {
       const touch = e.touches[0];
       const dx = touch.clientX - touchStartRef.current.x;
       const dy = touch.clientY - touchStartRef.current.y;
+      const activeScale = currentScaleRef.current;
 
-      if (scale > 1) {
-        // Panning when zoomed with soft edge resistance
+      if (activeScale > 1.01) {
+        // Panning when zoomed: move freely in all directions with edge resistance
         const targetPan = {
           x: startPanRef.current.x + dx,
           y: startPanRef.current.y + dy,
         };
-        setPan(applyRubberBand(targetPan, scale));
+        setPan(applyRubberBand(targetPan, activeScale));
         return;
       }
 
@@ -357,7 +412,6 @@ export default function ItemPhotoGallery({
       if (gestureModeRef.current === "dismiss") {
         setDismissY(Math.max(0, dy));
       } else if (gestureModeRef.current === "swipe") {
-        // Real-time horizontal track dragging (moves next photo onto the screen simultaneously!)
         if ((currentIndex === 0 && dx > 0) || (currentIndex === images.length - 1 && dx < 0)) {
           setSwipeX(dx * 0.35);
         } else {
@@ -367,18 +421,34 @@ export default function ItemPhotoGallery({
     }
   };
 
-  const handleTouchEnd = () => {
-    if (scale <= 1.05 && scale !== 1) {
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    // If one finger is still on screen after 2-finger pinch, seamlessly continue with 1-finger pan!
+    if (e.touches.length === 1) {
+      const remainingTouch = e.touches[0];
+      touchStartRef.current = {
+        x: remainingTouch.clientX,
+        y: remainingTouch.clientY,
+        time: Date.now(),
+      };
+      startPanRef.current = { ...currentPanRef.current };
+      gestureModeRef.current = currentScaleRef.current > 1.01 ? "pan" : "idle";
+      pinchStartDistRef.current = null;
+      pinchStartMidRef.current = null;
+      return;
+    }
+
+    // All fingers lifted
+    const activeScale = currentScaleRef.current;
+
+    if (activeScale <= 1.05) {
+      setIsTransitioning(true);
       setScale(1);
       setPan({ x: 0, y: 0 });
-    } else if (scale > 1) {
-      // Snap flush back to screen edges on release
+      setTimeout(() => setIsTransitioning(false), 200);
+    } else {
       setIsTransitioning(true);
-      setPan((prev) => clampPan(prev, scale));
-      setTimeout(() => setIsTransitioning(false), 180);
-      touchStartRef.current = null;
-      pinchStartDistRef.current = null;
-      return;
+      setPan((prev) => clampPan(prev, activeScale));
+      setTimeout(() => setIsTransitioning(false), 200);
     }
 
     if (gestureModeRef.current === "dismiss") {
@@ -401,6 +471,7 @@ export default function ItemPhotoGallery({
     gestureModeRef.current = "idle";
     touchStartRef.current = null;
     pinchStartDistRef.current = null;
+    pinchStartMidRef.current = null;
     setTimeout(() => setIsTransitioning(false), 220);
   };
 
@@ -423,15 +494,33 @@ export default function ItemPhotoGallery({
           transition: "transform 180ms ease, box-shadow 180ms ease",
         }}
       >
+        {/* Skeleton Shimmer Loading Placeholder */}
+        {!isFrontLoaded && (
+          <div
+            className="skeleton"
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 1,
+              borderRadius: "16px",
+            }}
+          />
+        )}
         <Image
           src={frontImage}
           alt={`${altText} — front`}
           fill
           sizes="(max-width: 768px) 100vw, 55vw"
-          style={{ objectFit: "contain", padding: "16px" }}
+          style={{
+            objectFit: "contain",
+            padding: "16px",
+            opacity: isFrontLoaded ? 1 : 0,
+            transition: "opacity 280ms ease-out",
+          }}
           priority
+          onLoad={() => setIsFrontLoaded(true)}
         />
-        <div style={{ position: "absolute", top: "12px", left: "12px" }}>
+        <div style={{ position: "absolute", top: "12px", left: "12px", zIndex: 2 }}>
           <span className="badge badge-accent">{category}</span>
         </div>
       </div>
@@ -451,19 +540,38 @@ export default function ItemPhotoGallery({
             transition: "transform 180ms ease, box-shadow 180ms ease",
           }}
         >
+          {/* Skeleton Shimmer Loading Placeholder */}
+          {!isBackLoaded && (
+            <div
+              className="skeleton"
+              style={{
+                position: "absolute",
+                inset: 0,
+                zIndex: 1,
+                borderRadius: "16px",
+              }}
+            />
+          )}
           <Image
             src={backImage}
             alt={`${altText} — back`}
             fill
             sizes="(max-width: 768px) 100vw, 55vw"
-            style={{ objectFit: "contain", padding: "16px" }}
+            style={{
+              objectFit: "contain",
+              padding: "16px",
+              opacity: isBackLoaded ? 1 : 0,
+              transition: "opacity 280ms ease-out",
+            }}
             loading="lazy"
+            onLoad={() => setIsBackLoaded(true)}
           />
           <div
             style={{
               position: "absolute",
               bottom: "12px",
               left: "12px",
+              zIndex: 2,
               background: "rgba(0, 0, 0, 0.65)",
               backdropFilter: "blur(8px)",
               WebkitBackdropFilter: "blur(8px)",
@@ -535,8 +643,7 @@ export default function ItemPhotoGallery({
                       overflow: "hidden",
                     }}
                     onClick={(e) => {
-                      // Click on the empty black area outside image closes the viewer
-                      if (e.target === e.currentTarget && scale === 1) {
+                      if (e.target === e.currentTarget && scale <= 1.01) {
                         closeViewer();
                       }
                     }}
@@ -551,7 +658,6 @@ export default function ItemPhotoGallery({
                         maxWidth: "100vw",
                         maxHeight: "100vh",
                         objectFit: "contain",
-                        // Screen-pixel translate first, then scale so pan is 1:1 and clamped precisely to screen edges
                         transform: `translate3d(${imgPanX}px, ${imgPanY}px, 0) scale(${imgScale})`,
                         transformOrigin: "center center",
                         transition: isTransitioning

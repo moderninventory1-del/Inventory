@@ -24,6 +24,7 @@ export default function AdminItemCard({ item, showDeleted = false }: AdminItemCa
   const [localDeleted, setLocalDeleted] = useState(item.isDeleted);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
 
   function handleDelete() {
     setIsDeleteModalOpen(true);
@@ -87,13 +88,29 @@ export default function AdminItemCard({ item, showDeleted = false }: AdminItemCa
             flexShrink: 0,
           }}
         >
+          {!imgLoaded && (
+            <div
+              className="skeleton"
+              style={{
+                position: "absolute",
+                inset: 0,
+                zIndex: 1,
+              }}
+            />
+          )}
           <Image
             src={item.frontImage}
             alt={`${item.brand.name} ${item.modelNumber}`}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            style={{ objectFit: "contain", padding: "16px" }}
+            style={{
+              objectFit: "contain",
+              padding: "16px",
+              opacity: imgLoaded ? 1 : 0,
+              transition: "opacity 240ms ease-out",
+            }}
             loading="lazy"
+            onLoad={() => setImgLoaded(true)}
           />
           {/* Category badge overlay */}
           <div

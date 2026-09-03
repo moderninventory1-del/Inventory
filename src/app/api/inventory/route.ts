@@ -31,7 +31,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       limit,
     });
 
-    return NextResponse.json(response);
+    return NextResponse.json(response, {
+      headers: {
+        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120",
+      },
+    });
   } catch (error) {
     console.error("[/api/inventory GET]", error);
     return NextResponse.json(

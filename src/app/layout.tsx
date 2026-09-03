@@ -6,6 +6,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import SessionProviderWrapper from "@/components/SessionProviderWrapper";
 import PreventZoom from "@/components/shared/PreventZoom";
+import ServiceWorkerRegister from "@/components/shared/ServiceWorkerRegister";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -13,7 +14,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#ffffff",
+  themeColor: "#2563eb",
 };
 
 export const metadata: Metadata = {
@@ -23,6 +24,23 @@ export const metadata: Metadata = {
   },
   description:
     "Browse the online TV spare parts inventory of Modern Electronics, a professional electronics repair business located in Chandigarh. Find high-quality motherboard and repair components.",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Modern Electronics",
+  },
   robots: {
     index: true,
     follow: true,
@@ -36,8 +54,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+      </head>
       <body>
         <PreventZoom />
+        <ServiceWorkerRegister />
         <SessionProviderWrapper>
           {children}
           <Toaster
