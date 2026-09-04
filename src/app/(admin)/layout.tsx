@@ -57,7 +57,7 @@ export default function AdminLayout({
       <style>{`
         .admin-main-content {
           flex: 1;
-          padding: 20px 16px 96px;
+          padding: 20px 16px calc(112px + env(safe-area-inset-bottom, 20px));
           max-width: 1200px;
           width: 100%;
         }

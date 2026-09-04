@@ -385,12 +385,11 @@ export default function InventoryForm({
       </section>
 
       {/* Actions */}
-      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+      <div className="form-actions-row">
         <button
           type="submit"
-          className="btn-primary"
+          className="btn-primary form-submit-btn"
           disabled={isSubmitting}
-          style={{ minWidth: "140px" }}
         >
           {isSubmitting ? (
             <>
@@ -407,13 +406,48 @@ export default function InventoryForm({
 
         <button
           type="button"
-          className="btn-secondary"
+          className="btn-secondary form-cancel-btn"
           disabled={isSubmitting}
           onClick={() => router.back()}
         >
           Cancel
         </button>
       </div>
+
+      <style>{`
+        .form-actions-row {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+          padding-top: 8px;
+          padding-bottom: calc(56px + env(safe-area-inset-bottom, 20px));
+        }
+
+        .form-submit-btn {
+          min-width: 150px;
+          height: 44px;
+          font-weight: 600;
+        }
+
+        .form-cancel-btn {
+          height: 44px;
+          font-weight: 500;
+        }
+
+        @media (max-width: 640px) {
+          .form-actions-row {
+            flex-direction: column;
+            width: 100%;
+          }
+          .form-submit-btn,
+          .form-cancel-btn {
+            width: 100%;
+            justify-content: center;
+            height: 48px;
+            font-size: 15px;
+          }
+        }
+      `}</style>
     </form>
   );
 }
