@@ -11,10 +11,15 @@
   --color-bg-card: #ffffff;
   --color-bg-surface: #f0f0f2;
 
-  /* Typography */
-  --color-text-primary: #1d1d1f;
-  --color-text-secondary: #424245;
-  --color-text-muted: #86868b;
+  /* Typography Tokens */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+    "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+
+  /* Typography Colors — High contrast, crisp Apple slate/dark */
+  --color-text-primary: #111827;
+  --color-text-secondary: #374151;
+  --color-text-muted: #64748b;
 
   /* Borders & Dividers */
   --color-border: rgba(0, 0, 0, 0.08);
@@ -75,12 +80,13 @@ html {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
-    "SF Pro Text", "Segoe UI", Roboto, "Inter", system-ui, sans-serif;
+  font-family: var(--font-sans);
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
   min-height: 100dvh;
-  line-height: 1.6;
+  line-height: 1.55;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   touch-action: pan-x pan-y;
   overscroll-behavior-y: none;
   -webkit-touch-callout: none;
@@ -112,7 +118,7 @@ body {
 }
 
 /* ============================================================
-   Typography
+   Typography Hierarchy & Utilities
    ============================================================ */
 
 h1,
@@ -122,9 +128,61 @@ h4,
 h5,
 h6 {
   color: var(--color-text-primary);
-  font-weight: 700;
   line-height: 1.2;
+  text-wrap: balance;
+}
+
+h1 {
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+h2 {
+  font-weight: 750;
   letter-spacing: -0.025em;
+}
+
+h3 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+h4 {
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+h5,
+h6 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Monospace & Tabular Technical Identifiers */
+.font-mono-tech {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  letter-spacing: -0.015em;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Highlighted Model / Part Number Badge */
+.model-highlight-badge {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.015em;
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-block;
 }
 
 /* ============================================================
@@ -256,7 +314,8 @@ h6 {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   color: var(--color-text-primary);
-  font-size: 14px;
+  font-size: 14.5px;
+  font-weight: 500;
   font-family: inherit;
   transition: border-color var(--transition-fast),
     box-shadow var(--transition-fast);
@@ -274,11 +333,11 @@ h6 {
 
 .input-label {
   display: block;
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 600;
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
   margin-bottom: 6px;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.005em;
 }
 
 /* ============================================================
@@ -291,7 +350,7 @@ h6 {
   padding: 3px 10px;
   border-radius: 100px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -299,7 +358,7 @@ h6 {
 .badge-accent {
   background: var(--color-accent-glow);
   color: var(--color-accent-text);
-  border: 1px solid rgba(0, 113, 227, 0.12);
+  border: 1px solid rgba(0, 113, 227, 0.16);
 }
 
 .badge-success {

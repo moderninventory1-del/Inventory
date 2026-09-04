@@ -32,12 +32,30 @@ export default function InventoryGrid({
   // Initialize from cache if navigating back, otherwise use server initialData
   const [items, setItems] = useState<PublicInventoryItem[]>(() => {
     const cached = getScrollCache<PublicInventoryItem>(STORAGE_KEY, cacheKey);
-    return cached && cached.items.length > 0 ? cached.items : initialData.items;
+    if (cached && cached.items.length > 0) {
+      if (
+        initialData.items.length > 0 &&
+        cached.items[0]?.id !== initialData.items[0]?.id
+      ) {
+        return initialData.items;
+      }
+      return cached.items;
+    }
+    return initialData.items;
   });
 
   const [cursor, setCursor] = useState<string | null>(() => {
     const cached = getScrollCache<PublicInventoryItem>(STORAGE_KEY, cacheKey);
-    return cached ? cached.cursor : initialData.nextCursor;
+    if (cached && cached.items.length > 0) {
+      if (
+        initialData.items.length > 0 &&
+        cached.items[0]?.id !== initialData.items[0]?.id
+      ) {
+        return initialData.nextCursor;
+      }
+      return cached.cursor;
+    }
+    return initialData.nextCursor;
   });
 
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -54,7 +72,11 @@ export default function InventoryGrid({
   // Restore scroll position when returning back
   useEffect(() => {
     const cached = getScrollCache<PublicInventoryItem>(STORAGE_KEY, cacheKey);
-    if (cached && cached.scrollY > 0 && !isRestoredRef.current) {
+    const isFresh =
+      initialData.items.length === 0 ||
+      (cached && cached.items[0]?.id === initialData.items[0]?.id);
+
+    if (cached && cached.scrollY > 0 && !isRestoredRef.current && isFresh) {
       isRestoredRef.current = true;
       const targetY = cached.scrollY;
 
@@ -67,9 +89,9 @@ export default function InventoryGrid({
 
       return () => timers.forEach(clearTimeout);
     }
-  }, [cacheKey]);
+  }, [cacheKey, initialData]);
 
-  // When filters change explicitly, reset to initialData
+  // When filters change explicitly, reset to initialData; also sync if initialData has new items
   useEffect(() => {
     if (prevKeyRef.current !== cacheKey) {
       prevKeyRef.current = cacheKey;
@@ -78,8 +100,16 @@ export default function InventoryGrid({
       setCursor(initialData.nextCursor);
       setHasError(false);
       saveScrollCache(STORAGE_KEY, cacheKey, initialData.items, initialData.nextCursor, 0);
+    } else if (
+      initialData.items.length > 0 &&
+      items.length > 0 &&
+      initialData.items[0]?.id !== items[0]?.id
+    ) {
+      setItems(initialData.items);
+      setCursor(initialData.nextCursor);
+      saveScrollCache(STORAGE_KEY, cacheKey, initialData.items, initialData.nextCursor, 0);
     }
-  }, [initialData, cacheKey]);
+  }, [initialData, cacheKey, items]);
 
   // Debounced scroll listener to continuously save position
   useEffect(() => {

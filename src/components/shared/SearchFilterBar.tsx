@@ -3,9 +3,10 @@
 // Instant responsive search + iOS-inspired dropdown filter bar
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Search, X, Loader2, Tag, Tv2, Filter, RotateCcw, ArrowUpDown, Package } from "lucide-react";
 import { ITEM_CATEGORIES } from "@/types";
+import { extractItemIdFromQuery } from "@/lib/utils";
 import IOSDropdown from "./IOSDropdown";
 
 interface SearchFilterBarProps {
@@ -30,7 +31,11 @@ export default function SearchFilterBar({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  useEffect(() => {
+    setIsNavigating(false);
+  }, [searchParams]);
 
   const categoryList: string[] =
     categories && categories.length > 0
@@ -115,18 +120,35 @@ export default function SearchFilterBar({
     setCurrentSort(urlSort === "oldest" ? "oldest" : "latest");
   }, [urlSort]);
 
+  const searchFormRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isFocused, setIsFocused] = useState(false);
   const isSearchActive = isFocused || Boolean(searchValue);
 
-  useEffect(() => {
-    onSearchActiveChange?.(isSearchActive);
-  }, [isSearchActive, onSearchActiveChange]);
-
   const updateParams = useCallback(
     (updates: Record<string, string>) => {
+      // Clear any pending typing debounce timer immediately
+      if (searchTimerRef.current) {
+        clearTimeout(searchTimerRef.current);
+        searchTimerRef.current = null;
+      }
+
       const params = new URLSearchParams(searchParams.toString());
       params.delete("cursor"); // Reset pagination on any filter change
+
+      // If this update was triggered by a filter (category, brand, box, status, sort),
+      // make sure any typed search text is flushed into the query right now
+      if (!("search" in updates)) {
+        const clean = searchValue.trim();
+        const extractedId = extractItemIdFromQuery(clean);
+        const effectiveSearch = extractedId || clean;
+        if (effectiveSearch) {
+          params.set("search", effectiveSearch);
+        } else {
+          params.delete("search");
+        }
+      }
 
       Object.entries(updates).forEach(([key, value]) => {
         if (value) {
@@ -136,20 +158,83 @@ export default function SearchFilterBar({
         }
       });
 
-      startTransition(() => {
-        router.push(`${pathname}?${params.toString()}`);
-      });
+      setIsNavigating(true);
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
     },
-    [pathname, router, searchParams]
+    [pathname, router, searchParams, searchValue]
   );
+
+  const handleDismissSearchKeyboard = useCallback(() => {
+    inputRef.current?.blur();
+    if (typeof document !== "undefined") {
+      (document.activeElement as HTMLElement)?.blur?.();
+    }
+    setIsFocused(false);
+  }, []);
+
+  // Automatically dismiss virtual keyboard when clicking or tapping anywhere outside the search bar
+  useEffect(() => {
+    const handlePointerDownOutside = (e: Event) => {
+      if (!isFocused && document.activeElement !== inputRef.current) return;
+
+      const target = e.target as Node | null;
+      if (!target) return;
+      if (searchFormRef.current && !searchFormRef.current.contains(target)) {
+        handleDismissSearchKeyboard();
+        // Immediately flush any unsubmitted search text on outside tap
+        const clean = searchValue.trim();
+        const extractedId = extractItemIdFromQuery(clean);
+        const finalSearch = extractedId || clean;
+        if (finalSearch !== urlSearch) {
+          if (searchTimerRef.current) {
+            clearTimeout(searchTimerRef.current);
+            searchTimerRef.current = null;
+          }
+          updateParams({ search: finalSearch });
+        }
+      }
+    };
+
+    const handleWindowScroll = () => {
+      if (document.activeElement === inputRef.current || isFocused) {
+        handleDismissSearchKeyboard();
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDownOutside, true);
+    document.addEventListener("touchstart", handlePointerDownOutside, true);
+    window.addEventListener("scroll", handleWindowScroll, { passive: true });
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDownOutside, true);
+      document.removeEventListener("touchstart", handlePointerDownOutside, true);
+      window.removeEventListener("scroll", handleWindowScroll);
+    };
+  }, [isFocused, searchValue, urlSearch, updateParams, handleDismissSearchKeyboard]);
+
+  useEffect(() => {
+    onSearchActiveChange?.(isSearchActive);
+  }, [isSearchActive, onSearchActiveChange]);
 
   // Auto-debounce search: wait 1 second of inactivity after typing before searching
   useEffect(() => {
     if (searchValue === urlSearch) return;
-    const timer = setTimeout(() => {
-      updateParams({ search: searchValue.trim() });
+
+    if (searchTimerRef.current) {
+      clearTimeout(searchTimerRef.current);
+    }
+
+    searchTimerRef.current = setTimeout(() => {
+      const clean = searchValue.trim();
+      const extractedId = extractItemIdFromQuery(clean);
+      updateParams({ search: extractedId || clean });
     }, 1000);
-    return () => clearTimeout(timer);
+
+    return () => {
+      if (searchTimerRef.current) {
+        clearTimeout(searchTimerRef.current);
+      }
+    };
   }, [searchValue, urlSearch, updateParams]);
 
   function handleInputFocus() {
@@ -160,6 +245,10 @@ export default function SearchFilterBar({
   }
 
   function handleCancelSearch() {
+    if (searchTimerRef.current) {
+      clearTimeout(searchTimerRef.current);
+      searchTimerRef.current = null;
+    }
     setIsFocused(false);
     setSearchValue("");
     inputRef.current?.blur();
@@ -167,6 +256,31 @@ export default function SearchFilterBar({
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
+  }
+
+  function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
+    const pastedText = e.clipboardData.getData("text");
+    const extractedId = extractItemIdFromQuery(pastedText);
+    if (extractedId) {
+      e.preventDefault();
+      setSearchValue(extractedId);
+      updateParams({ search: extractedId });
+      inputRef.current?.blur();
+      setIsFocused(false);
+    }
+  }
+
+  function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value;
+    const extractedId = extractItemIdFromQuery(val);
+    if (extractedId && (val.includes("/") || val.startsWith("http"))) {
+      setSearchValue(extractedId);
+      updateParams({ search: extractedId });
+      inputRef.current?.blur();
+      setIsFocused(false);
+      return;
+    }
+    setSearchValue(val);
   }
 
   function handleSearchSubmit(e?: React.FormEvent) {
@@ -181,7 +295,14 @@ export default function SearchFilterBar({
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-    updateParams({ search: searchValue.trim() });
+
+    const clean = searchValue.trim();
+    const extractedId = extractItemIdFromQuery(clean);
+    const finalSearch = extractedId || clean;
+    if (extractedId && extractedId !== clean) {
+      setSearchValue(extractedId);
+    }
+    updateParams({ search: finalSearch });
   }
 
   function handleToggleSort() {
@@ -194,6 +315,10 @@ export default function SearchFilterBar({
   }
 
   function handleClear() {
+    if (searchTimerRef.current) {
+      clearTimeout(searchTimerRef.current);
+      searchTimerRef.current = null;
+    }
     setSearchValue("");
     setSelectedCategory("");
     setSelectedBrand("");
@@ -203,9 +328,8 @@ export default function SearchFilterBar({
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-    startTransition(() => {
-      router.push(pathname);
-    });
+    setIsNavigating(true);
+    router.push(pathname, { scroll: false });
   }
 
   const hasFilters =
@@ -218,11 +342,15 @@ export default function SearchFilterBar({
   return (
     <div
       style={{ display: "flex", flexDirection: "column", gap: "12px" }}
-      data-filter-pending={isPending ? "" : undefined}
+      data-filter-pending={isNavigating ? "" : undefined}
     >
       {/* ── Search Bar Row ── */}
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        <form onSubmit={handleSearchSubmit} style={{ position: "relative", flex: 1 }}>
+        <form
+          ref={searchFormRef}
+          onSubmit={handleSearchSubmit}
+          style={{ position: "relative", flex: 1 }}
+        >
           <button
             type="submit"
             aria-label="Search"
@@ -251,7 +379,16 @@ export default function SearchFilterBar({
             value={searchValue}
             onFocus={handleInputFocus}
             onClick={handleInputFocus}
-            onChange={(e) => setSearchValue(e.target.value)}
+            onChange={handleSearchChange}
+            onPaste={handlePaste}
+            onBlur={() => setIsFocused(false)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSearchSubmit(e);
+              } else if (e.key === "Escape") {
+                handleDismissSearchKeyboard();
+              }
+            }}
             placeholder={placeholder ?? "Search by model number or brand…"}
             className="input-field search-input"
             style={{
@@ -259,7 +396,8 @@ export default function SearchFilterBar({
               paddingRight: "86px",
               height: "44px",
               borderRadius: "var(--radius-md)",
-              fontSize: "14px",
+              fontSize: "14.5px",
+              fontWeight: 500,
               boxShadow: "var(--shadow-card)",
             }}
             aria-label="Search inventory"
@@ -277,7 +415,7 @@ export default function SearchFilterBar({
             gap: "6px",
           }}
         >
-          {isPending && (
+          {isNavigating && (
             <Loader2
               size={15}
               className="animate-spin"
@@ -303,7 +441,7 @@ export default function SearchFilterBar({
               color: "#ffffff",
               border: "none",
               fontSize: "13px",
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: "pointer",
               boxShadow: "0 2px 8px rgba(0, 113, 227, 0.28)",
               transition: "transform 150ms ease, opacity 150ms ease",
@@ -433,7 +571,8 @@ export default function SearchFilterBar({
         {showStatusFilter && (
           <IOSDropdown
             label="Status"
-            allLabel="Active Only"
+            hideAllOption
+            defaultValue="active"
             options={[
               { value: "active", label: "Active Only" },
               { value: "deleted", label: "Deleted Only" },
@@ -442,7 +581,7 @@ export default function SearchFilterBar({
             selectedValue={selectedStatus}
             onChange={(val) => {
               setSelectedStatus(val);
-              updateParams({ status: val });
+              updateParams({ status: val === "active" ? "" : val });
             }}
             icon={<Filter size={12} />}
           />
@@ -489,53 +628,70 @@ export default function SearchFilterBar({
           paddingRight: "2px",
         }}
       >
-        <button
-          type="button"
-          onClick={handleToggleSort}
-          className="sort-toggle-btn"
-          aria-label={`Current sort order: ${currentSort === "oldest" ? "Oldest First" : "Latest First"}. Click to toggle.`}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-            padding: "6px 12px",
-            borderRadius: "8px",
-            fontSize: "12px",
-            fontWeight: 600,
-            letterSpacing: "-0.01em",
-            cursor: "pointer",
-            border:
-              currentSort === "oldest"
-                ? "1px solid #005bb5"
-                : "1px solid #0f172a",
-            background:
-              currentSort === "oldest"
-                ? "var(--color-accent)"
-                : "#1e293b",
-            color: "#ffffff",
-            boxShadow:
-              currentSort === "oldest"
-                ? "0 2px 8px rgba(0, 113, 227, 0.35)"
-                : "0 2px 6px rgba(15, 23, 42, 0.16)",
-            transition: "all 180ms cubic-bezier(0.16, 1, 0.3, 1)",
-            userSelect: "none",
-          }}
-          title={
-            currentSort === "oldest"
-              ? "Currently sorted Oldest First. Click to switch to Latest First."
-              : "Currently sorted Latest First (Default). Click to switch to Oldest First."
-          }
-        >
-          <ArrowUpDown
-            size={12}
-            strokeWidth={2.5}
-            style={{
-              flexShrink: 0,
-              color: currentSort === "oldest" ? "#ffffff" : "#94a3b8",
-            }}
-          />
-          <span>Sort: {currentSort === "oldest" ? "Oldest First" : "Latest First"}</span>
-        </button>
+        {(() => {
+          const isDeletedMode = selectedStatus === "deleted";
+          const sortLabel = isDeletedMode
+            ? currentSort === "oldest"
+              ? "Oldest Deleted"
+              : "Recently Deleted"
+            : currentSort === "oldest"
+            ? "Oldest First"
+            : "Latest First";
+          const sortTitle = isDeletedMode
+            ? currentSort === "oldest"
+              ? "Currently sorted Oldest Deleted First. Click to switch to Recently Deleted."
+              : "Currently sorted Recently Deleted (Default). Click to switch to Oldest Deleted First."
+            : currentSort === "oldest"
+            ? "Currently sorted Oldest First. Click to switch to Latest First."
+            : "Currently sorted Latest First (Default). Click to switch to Oldest First.";
+          const sortAriaLabel = `Current sort order: ${sortLabel}. Click to toggle.`;
+
+          return (
+            <button
+              type="button"
+              onClick={handleToggleSort}
+              className="sort-toggle-btn"
+              aria-label={sortAriaLabel}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "6px 12px",
+                borderRadius: "8px",
+                fontSize: "12.5px",
+                fontWeight: 700,
+                letterSpacing: "-0.01em",
+                cursor: "pointer",
+                border:
+                  currentSort === "oldest"
+                    ? "1px solid #005bb5"
+                    : "1px solid #0f172a",
+                background:
+                  currentSort === "oldest"
+                    ? "var(--color-accent)"
+                    : "#1e293b",
+                color: "#ffffff",
+                boxShadow:
+                  currentSort === "oldest"
+                    ? "0 2px 8px rgba(0, 113, 227, 0.35)"
+                    : "0 2px 6px rgba(15, 23, 42, 0.16)",
+                transition: "all 180ms cubic-bezier(0.16, 1, 0.3, 1)",
+                userSelect: "none",
+              }}
+              title={sortTitle}
+            >
+              <ArrowUpDown
+                size={12}
+                strokeWidth={2.5}
+                style={{
+                  flexShrink: 0,
+                  color: currentSort === "oldest" ? "#ffffff" : "#94a3b8",
+                }}
+              />
+              <span>Sort: {sortLabel}</span>
+            </button>
+          );
+        })()}
       </div>
     </div>
   );

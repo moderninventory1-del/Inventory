@@ -39,12 +39,9 @@ export default function BackButton({
       className={className}
       title={title || label}
       style={{
-        ...style,
         cursor: "pointer",
-        background: "none",
-        border: "none",
         font: "inherit",
-        padding: 0,
+        ...style,
       }}
     >
       <ArrowLeft size={16} strokeWidth={2.4} />

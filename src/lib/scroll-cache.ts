@@ -58,3 +58,8 @@ export function clearScrollCache(storageKey: string) {
     sessionStorage.removeItem(storageKey);
   } catch {}
 }
+
+export function clearAllInventoryCaches() {
+  clearScrollCache("admin_inventory_scroll_cache");
+  clearScrollCache("user_inventory_scroll_cache");
+}

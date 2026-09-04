@@ -8,7 +8,7 @@ import AdminItemCard from "./AdminItemCard";
 import AdminItemCardSkeleton from "./AdminItemCardSkeleton";
 import type { InventoryItem, PaginatedResponse } from "@/types";
 import { Loader2, PackageSearch } from "lucide-react";
-import { getScrollCache, saveScrollCache } from "@/lib/scroll-cache";
+import { getScrollCache, saveScrollCache, clearScrollCache } from "@/lib/scroll-cache";
 
 interface AdminInventoryGridProps {
   initialData: PaginatedResponse<InventoryItem>;
@@ -38,12 +38,30 @@ export default function AdminInventoryGrid({
   // Initialize from cache if navigating back, otherwise use server initialData
   const [items, setItems] = useState<InventoryItem[]>(() => {
     const cached = getScrollCache<InventoryItem>(ADMIN_STORAGE_KEY, cacheKey);
-    return cached && cached.items.length > 0 ? cached.items : initialData.items;
+    if (cached && cached.items.length > 0) {
+      if (
+        initialData.items.length > 0 &&
+        cached.items[0]?.id !== initialData.items[0]?.id
+      ) {
+        return initialData.items;
+      }
+      return cached.items;
+    }
+    return initialData.items;
   });
 
   const [cursor, setCursor] = useState<string | null>(() => {
     const cached = getScrollCache<InventoryItem>(ADMIN_STORAGE_KEY, cacheKey);
-    return cached ? cached.cursor : initialData.nextCursor;
+    if (cached && cached.items.length > 0) {
+      if (
+        initialData.items.length > 0 &&
+        cached.items[0]?.id !== initialData.items[0]?.id
+      ) {
+        return initialData.nextCursor;
+      }
+      return cached.cursor;
+    }
+    return initialData.nextCursor;
   });
 
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -57,10 +75,27 @@ export default function AdminInventoryGrid({
   const isRestoredRef = useRef(false);
   const prevKeyRef = useRef(cacheKey);
 
+  // Instant deletion handler — purges item from state in 0ms and updates cache
+  const handleItemDeleted = useCallback(
+    (deletedId: string) => {
+      setItems((prev) => {
+        const next = prev.filter((i) => i.id !== deletedId);
+        saveScrollCache(ADMIN_STORAGE_KEY, cacheKey, next, cursor, window.scrollY);
+        return next;
+      });
+      clearScrollCache("user_inventory_scroll_cache");
+    },
+    [cacheKey, cursor]
+  );
+
   // Restore scroll position when returning back
   useEffect(() => {
     const cached = getScrollCache<InventoryItem>(ADMIN_STORAGE_KEY, cacheKey);
-    if (cached && cached.scrollY > 0 && !isRestoredRef.current) {
+    const isFresh =
+      initialData.items.length === 0 ||
+      (cached && cached.items[0]?.id === initialData.items[0]?.id);
+
+    if (cached && cached.scrollY > 0 && !isRestoredRef.current && isFresh) {
       isRestoredRef.current = true;
       const targetY = cached.scrollY;
 
@@ -73,9 +108,9 @@ export default function AdminInventoryGrid({
 
       return () => timers.forEach(clearTimeout);
     }
-  }, [cacheKey]);
+  }, [cacheKey, initialData]);
 
-  // When filters change explicitly, reset to initialData
+  // When filters change explicitly, reset to initialData; also sync if initialData has new item
   useEffect(() => {
     if (prevKeyRef.current !== cacheKey) {
       prevKeyRef.current = cacheKey;
@@ -84,8 +119,16 @@ export default function AdminInventoryGrid({
       setCursor(initialData.nextCursor);
       setHasError(false);
       saveScrollCache(ADMIN_STORAGE_KEY, cacheKey, initialData.items, initialData.nextCursor, 0);
+    } else if (
+      initialData.items.length > 0 &&
+      items.length > 0 &&
+      initialData.items[0]?.id !== items[0]?.id
+    ) {
+      setItems(initialData.items);
+      setCursor(initialData.nextCursor);
+      saveScrollCache(ADMIN_STORAGE_KEY, cacheKey, initialData.items, initialData.nextCursor, 0);
     }
-  }, [initialData, cacheKey]);
+  }, [initialData, cacheKey, items]);
 
   // Debounced scroll listener to continuously save position
   useEffect(() => {
@@ -218,7 +261,7 @@ export default function AdminInventoryGrid({
             className="animate-fade-in"
             style={{ animationDelay: `${Math.min(i % 15, 6) * 40}ms` }}
           >
-            <AdminItemCard item={item} showDeleted={showDeleted} />
+            <AdminItemCard item={item} showDeleted={showDeleted} onDelete={handleItemDeleted} />
           </div>
         ))}
 

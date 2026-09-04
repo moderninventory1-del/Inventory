@@ -23,25 +23,35 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import ItemPhotoGallery from "@/components/public/ItemPhotoGallery";
-import BackButton from "@/components/shared/BackButton";
+import AdminItemDetailHeader from "@/components/admin/AdminItemDetailHeader";
+import AdminWhatsAppShare from "@/components/admin/AdminWhatsAppShare";
+import NotSureToggleButton from "@/components/admin/NotSureToggleButton";
+import AdminRestoreBanner from "@/components/admin/AdminRestoreBanner";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id } = await params;
-  const item = await prisma.inventoryItem.findUnique({
-    where: { id },
-    select: { brand: { select: { name: true } }, modelNumber: true },
-  });
+  try {
+    const { id } = await params;
+    const item = await prisma.inventoryItem.findUnique({
+      where: { id },
+      select: { brand: { select: { name: true } }, modelNumber: true },
+    });
 
-  if (!item) return { title: "Item Not Found | Admin" };
+    if (!item) return { title: "Item Not Found | Admin" };
 
-  return {
-    title: `${item.brand.name} ${item.modelNumber} | Admin Details`,
-  };
+    return {
+      title: `${item.brand.name} ${item.modelNumber} | Admin Details`,
+    };
+  } catch (err) {
+    console.error("[Admin generateMetadata error]", err);
+    return { title: "Item Details | Admin" };
+  }
 }
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminItemDetailPage({ params }: PageProps) {
   const session = await getServerSession(authOptions);
@@ -51,57 +61,61 @@ export default async function AdminItemDetailPage({ params }: PageProps) {
 
   const { id } = await params;
 
-  const item = await prisma.inventoryItem.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      modelNumber: true,
-      brand: { select: { id: true, name: true } },
-      category: true,
-      description: true,
-      boxLocation: true,
-      frontImage: true,
-      backImage: true,
-      isDeleted: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
+  let item = null;
+  try {
+    item = await prisma.inventoryItem.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        modelNumber: true,
+        brand: { select: { id: true, name: true } },
+        category: true,
+        description: true,
+        boxLocation: true,
+        frontImage: true,
+        backImage: true,
+        isDeleted: true,
+        isNotSure: true,
+        notSureAt: true,
+        notSureRemarks: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  } catch (err) {
+    console.error(`[AdminItemDetailPage] Error fetching item ${id}:`, err);
+  }
 
   if (!item) notFound();
 
   return (
-    <div className="admin-detail-page-container">
-      {/* ── 1. Top Navigation Bar (Apple-styled on mobile & desktop) ── */}
-      <header className="admin-detail-nav">
-        <BackButton
-          fallbackHref="/admin/inventory"
-          label="Inventory"
-          className="nav-back-pill"
-          title="Back to inventory list"
+    <div
+      className="admin-detail-page-container"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "16px",
+        paddingBottom: "32px",
+        maxWidth: "1200px",
+        margin: "0 auto",
+        width: "100%",
+        boxSizing: "border-box",
+      }}
+    >
+      {/* ── 1. Top Navigation Bar (Apple-styled with Edit, Delete with Slide Confirmation, and Back) ── */}
+      <AdminItemDetailHeader item={item} />
+
+      {/* ── Deleted Item Notice & One-Click Restore Banner ── */}
+      {item.isDeleted && (
+        <AdminRestoreBanner
+          id={item.id}
+          modelNumber={item.modelNumber}
+          brandName={item.brand.name}
+          category={item.category}
+          boxLocation={item.boxLocation}
+          frontImage={item.frontImage}
         />
-
-        <div className="nav-actions">
-          <Link
-            href={`/item/${item.id}`}
-            target="_blank"
-            className="nav-secondary-btn"
-            title="Open customer storefront view in new tab"
-          >
-            <ExternalLink size={15} />
-            <span className="nav-btn-text">Public View</span>
-          </Link>
-
-          <Link
-            href={`/admin/inventory/${item.id}/edit`}
-            className="nav-primary-btn"
-            title="Edit item specifications and photos"
-          >
-            <Pencil size={14} strokeWidth={2.4} />
-            <span>Edit</span>
-          </Link>
-        </div>
-      </header>
+      )}
 
       {/* ── 2. Main Content Grid ── */}
       <div className="admin-detail-grid">
@@ -176,6 +190,27 @@ export default async function AdminItemDetailPage({ params }: PageProps) {
                 {item.boxLocation || "No Box Assigned"}
               </span>
             </div>
+
+            {/* Single Premium WhatsApp Share Button with Box Prompt Modal */}
+            <AdminWhatsAppShare
+              id={item.id}
+              brand={item.brand.name}
+              modelNumber={item.modelNumber}
+              category={item.category}
+              boxLocation={item.boxLocation}
+              description={item.description}
+            />
+
+            {/* Staff Checking Box Toggle Button */}
+            <NotSureToggleButton
+              id={item.id}
+              isNotSureInitially={item.isNotSure}
+              initialRemarks={item.notSureRemarks}
+              initialNotSureAt={item.notSureAt}
+              modelNumber={item.modelNumber}
+              brand={item.brand.name}
+              boxLocation={item.boxLocation}
+            />
           </div>
 
           {/* ── 4. Item Specifications (Grouped Apple List) ── */}
@@ -243,78 +278,8 @@ export default async function AdminItemDetailPage({ params }: PageProps) {
           flex-direction: column;
           gap: 16px;
           padding-bottom: 24px;
-          max-width: 1200px;
           margin: 0 auto;
           width: 100%;
-        }
-
-        /* Top Nav */
-        .admin-detail-nav {
-          display: flex;
-          align-items: center;
-          justifyContent: space-between;
-          padding: 4px 0 8px;
-        }
-        .nav-back-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 8px 14px;
-          background: var(--color-bg-card);
-          border: 1px solid var(--color-border);
-          border-radius: 100px;
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--color-text-primary);
-          text-decoration: none;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-          transition: all 150ms ease;
-        }
-        .nav-back-pill:hover {
-          background: var(--color-bg-surface);
-          border-color: rgba(0, 113, 227, 0.3);
-          color: var(--color-accent);
-        }
-        .nav-actions {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        .nav-secondary-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 8px 14px;
-          background: var(--color-bg-card);
-          border: 1px solid var(--color-border);
-          border-radius: 100px;
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--color-text-primary);
-          text-decoration: none;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-          transition: all 150ms ease;
-        }
-        .nav-secondary-btn:hover {
-          background: var(--color-bg-surface);
-          border-color: rgba(0, 113, 227, 0.3);
-        }
-        .nav-primary-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 8px 18px;
-          background: var(--color-accent);
-          color: #ffffff;
-          border-radius: 100px;
-          font-size: 13px;
-          font-weight: 600;
-          text-decoration: none;
-          box-shadow: 0 2px 10px rgba(0, 113, 227, 0.28);
-          transition: transform 120ms ease, box-shadow 150ms ease;
-        }
-        .nav-primary-btn:active {
-          transform: scale(0.96);
         }
 
         /* Grid */
@@ -374,9 +339,9 @@ export default async function AdminItemDetailPage({ params }: PageProps) {
           border-radius: 100px;
         }
         .item-title {
-          font-size: clamp(22px, 4vw, 30px);
+          font-size: clamp(24px, 4.5vw, 34px);
           font-weight: 800;
-          letter-spacing: -0.03em;
+          letter-spacing: -0.035em;
           color: var(--color-text-primary);
           line-height: 1.15;
           margin: 0;
@@ -384,25 +349,28 @@ export default async function AdminItemDetailPage({ params }: PageProps) {
         .model-pill {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          margin-top: 6px;
+          gap: 8px;
+          margin-top: 8px;
           background: var(--color-bg-surface);
-          border: 1px solid var(--color-border);
-          padding: 3px 10px;
-          border-radius: 8px;
+          border: 1.5px solid var(--color-border);
+          padding: 6px 14px;
+          border-radius: 10px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
         }
         .model-label {
           font-size: 11px;
-          font-weight: 700;
+          font-weight: 800;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
+          letter-spacing: 0.08em;
           color: var(--color-text-muted);
         }
         .model-value {
-          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-          font-size: 13px;
-          font-weight: 700;
+          font-family: var(--font-mono);
+          font-size: 16px;
+          font-weight: 800;
           color: var(--color-text-primary);
+          letter-spacing: -0.015em;
+          font-variant-numeric: tabular-nums;
         }
 
         /* ── Special Box Location Card ── */
@@ -451,7 +419,7 @@ export default async function AdminItemDetailPage({ params }: PageProps) {
         }
         .box-badge-label {
           display: block;
-          font-size: 11px;
+          font-size: 11.5px;
           font-weight: 800;
           letter-spacing: 0.08em;
           text-transform: uppercase;
@@ -465,7 +433,7 @@ export default async function AdminItemDetailPage({ params }: PageProps) {
           display: inline-flex;
           align-items: center;
           gap: 5px;
-          font-size: 11px;
+          font-size: 11.5px;
           font-weight: 600;
           color: var(--color-text-muted);
           margin-top: 2px;
@@ -500,9 +468,9 @@ export default async function AdminItemDetailPage({ params }: PageProps) {
           padding: 8px 0 2px;
         }
         .box-main-value {
-          font-size: clamp(20px, 4.5vw, 26px);
+          font-size: clamp(24px, 5vw, 32px);
           font-weight: 800;
-          letter-spacing: -0.02em;
+          letter-spacing: -0.025em;
           color: var(--color-text-primary);
           line-height: 1.25;
           word-break: break-word;
@@ -510,7 +478,7 @@ export default async function AdminItemDetailPage({ params }: PageProps) {
         .box-highlight-card.empty .box-main-value {
           color: var(--color-text-muted);
           font-weight: 600;
-          font-size: 16px;
+          font-size: 17px;
         }
 
         /* Specs Grouped Table */
@@ -519,7 +487,7 @@ export default async function AdminItemDetailPage({ params }: PageProps) {
           border-radius: 20px;
         }
         .section-eyebrow {
-          font-size: 11px;
+          font-size: 11.5px;
           font-weight: 800;
           letter-spacing: 0.08em;
           text-transform: uppercase;
@@ -567,28 +535,30 @@ export default async function AdminItemDetailPage({ params }: PageProps) {
           color: var(--color-accent);
         }
         .spec-label-text {
-          font-size: 13px;
+          font-size: 13.5px;
           font-weight: 600;
-          color: var(--color-text-muted);
+          color: var(--color-text-secondary);
         }
         .spec-value-text {
-          font-size: 14px;
-          font-weight: 600;
+          font-size: 14.5px;
+          font-weight: 700;
           color: var(--color-text-primary);
           text-align: right;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
           max-width: 60%;
+          font-variant-numeric: tabular-nums;
         }
         .spec-value-text.accent {
           color: var(--color-accent-text);
-          font-weight: 700;
+          font-weight: 800;
         }
         .spec-value-text.monospace {
-          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-          font-size: 12px;
-          color: var(--color-text-muted);
+          font-family: var(--font-mono);
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--color-text-secondary);
         }
 
         /* Description */
@@ -611,9 +581,6 @@ export default async function AdminItemDetailPage({ params }: PageProps) {
         }
 
         @media (max-width: 767px) {
-          .nav-btn-text {
-            display: none;
-          }
           .admin-bottom-nav {
             display: none !important;
           }

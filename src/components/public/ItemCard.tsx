@@ -103,40 +103,48 @@ export default function ItemCard({ item }: ItemCardProps) {
             >
               <Tv2 size={16} color="var(--color-accent-text)" />
             </div>
-            <div style={{ minWidth: 0 }}>
-              <h3
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <span
                 style={{
-                  fontSize: "15px",
-                  fontWeight: 600,
-                  color: "var(--color-text-primary)",
-                  lineHeight: 1.3,
+                  display: "block",
+                  fontSize: "11.5px",
+                  fontWeight: 700,
+                  color: "var(--color-text-secondary)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  lineHeight: 1.2,
+                  marginBottom: "2px",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
                 }}
               >
                 {item.brand.name}
-              </h3>
-              <p
+              </span>
+              <h3
                 style={{
-                  fontSize: "13px",
-                  color: "var(--color-text-muted)",
+                  fontSize: "15.5px",
+                  fontWeight: 700,
+                  color: "var(--color-text-primary)",
+                  fontFamily: "var(--font-mono)",
+                  lineHeight: 1.3,
+                  letterSpacing: "-0.015em",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
                 }}
               >
                 {item.modelNumber}
-              </p>
+              </h3>
             </div>
           </div>
 
           {item.description && (
             <p
               style={{
-                fontSize: "13px",
+                fontSize: "13.5px",
                 color: "var(--color-text-secondary)",
-                lineHeight: 1.5,
+                lineHeight: 1.55,
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: "vertical",
@@ -152,8 +160,10 @@ export default function ItemCard({ item }: ItemCardProps) {
               marginTop: "auto",
               paddingTop: "8px",
               borderTop: "1px solid var(--color-border)",
-              fontSize: "12px",
+              fontSize: "11.5px",
+              fontWeight: 500,
               color: "var(--color-text-muted)",
+              fontVariantNumeric: "tabular-nums",
             }}
           >
             Added {formatDate(item.createdAt)}

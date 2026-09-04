@@ -33,7 +33,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(response, {
       headers: {
-        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120",
+        "Cache-Control": "no-store, no-cache, must-revalidate",
       },
     });
   } catch (error) {

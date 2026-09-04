@@ -141,10 +141,10 @@ export default function PublicPageHeader({
         }
 
         .hero-title {
-          font-size: clamp(20px, 5.5vw, 27px);
+          font-size: clamp(22px, 5.5vw, 29px);
           font-weight: 800;
           letter-spacing: -0.035em;
-          color: #0f172a;
+          color: var(--color-text-primary);
           line-height: 1.15;
           margin: 0;
         }
@@ -176,8 +176,9 @@ export default function PublicPageHeader({
           display: flex;
           align-items: center;
           gap: 6px;
-          font-size: 12.5px;
-          color: #64748b;
+          font-size: 13px;
+          font-weight: 500;
+          color: var(--color-text-secondary);
           line-height: 1.4;
           margin-top: 4px;
         }
@@ -190,7 +191,7 @@ export default function PublicPageHeader({
         .hero-action-row {
           display: flex;
           align-items: center;
-          justify-content: space-between;
+          justifyContent: space-between;
           flex-wrap: wrap;
           gap: 12px;
           padding-top: 10px;
@@ -223,9 +224,9 @@ export default function PublicPageHeader({
         }
 
         .hero-tagline {
-          font-size: 12px;
-          font-weight: 500;
-          color: #94a3b8;
+          font-size: 12.5px;
+          font-weight: 600;
+          color: var(--color-text-muted);
         }
 
         .sticky-search-container {

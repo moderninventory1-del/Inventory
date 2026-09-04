@@ -32,6 +32,9 @@ export interface InventoryItem {
   frontImage: string;
   backImage: string | null;
   isDeleted: boolean;
+  isNotSure?: boolean;
+  notSureAt?: Date | string | null;
+  notSureRemarks?: string | null;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;

@@ -21,6 +21,20 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  async redirects() {
+    return [
+      {
+        source: "/admin/item/:id/edit",
+        destination: "/admin/inventory/:id/edit",
+        permanent: false,
+      },
+      {
+        source: "/admin/item/:id",
+        destination: "/admin/inventory/:id",
+        permanent: false,
+      },
+    ];
+  },
   async headers() {
     return [
       {

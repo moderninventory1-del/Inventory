@@ -8,22 +8,25 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import toast from "react-hot-toast";
 import { Tv2, ChevronDown, ChevronUp, Pencil, Trash2, RotateCcw, Loader2, Eye, MapPin } from "lucide-react";
-import { deleteInventoryItem, restoreInventoryItem } from "@/app/actions/inventory";
+import { deleteInventoryItem } from "@/app/actions/inventory";
 import type { InventoryItem } from "@/types";
 import { formatDate } from "@/lib/utils";
 import SlideToDeleteModal from "@/components/admin/SlideToDeleteModal";
+import SlideToRestoreModal from "@/components/admin/SlideToRestoreModal";
+import { clearAllInventoryCaches } from "@/lib/scroll-cache";
 
 interface AdminItemCardProps {
   item: InventoryItem;
   showDeleted?: boolean;
+  onDelete?: (id: string) => void;
 }
 
-export default function AdminItemCard({ item, showDeleted = false }: AdminItemCardProps) {
-  const router = useRouter();
+export default function AdminItemCard({ item, showDeleted = false, onDelete }: AdminItemCardProps) {
   const [isPending, startTransition] = useTransition();
   const [localDeleted, setLocalDeleted] = useState(item.isDeleted);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
 
   function handleDelete() {
@@ -37,6 +40,8 @@ export default function AdminItemCard({ item, showDeleted = false }: AdminItemCa
         toast.success("Item moved to trash");
         setLocalDeleted(true);
         setIsDeleteModalOpen(false);
+        clearAllInventoryCaches();
+        onDelete?.(item.id);
       } else {
         toast.error(result.error);
         setIsDeleteModalOpen(false);
@@ -44,21 +49,11 @@ export default function AdminItemCard({ item, showDeleted = false }: AdminItemCa
     });
   }
 
-  function handleRestore() {
-    startTransition(async () => {
-      const result = await restoreInventoryItem(item.id);
-      if (result.success) {
-        toast.success("Item restored. Opening edit page to update details…");
-        setLocalDeleted(false);
-        router.push(`/admin/inventory/${item.id}/edit`);
-      } else {
-        toast.error(result.error);
-      }
-    });
-  }
-
-  // If it's deleted and we are not explicitly showing deleted items, hide it or fade it
+  // If it's deleted and we are not explicitly showing deleted items, immediately remove from DOM
   const isHidden = localDeleted && !showDeleted;
+  if (isHidden) {
+    return null;
+  }
 
   return (
     <article
@@ -120,10 +115,30 @@ export default function AdminItemCard({ item, showDeleted = false }: AdminItemCa
               left: "10px",
               display: "flex",
               flexDirection: "column",
-              gap: "6px"
+              gap: "6px",
+              zIndex: 2,
             }}
           >
             <span className="badge badge-accent">{item.category}</span>
+            {item.isNotSure && (
+              <span
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 800,
+                  padding: "3px 8px",
+                  borderRadius: "100px",
+                  background: "#fef3c7",
+                  border: "1px solid #f59e0b",
+                  color: "#92400e",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  boxShadow: "0 2px 6px rgba(245, 158, 11, 0.2)",
+                }}
+              >
+                ⚠️ Not Sure
+              </span>
+            )}
             {localDeleted && <span className="badge badge-danger">Deleted</span>}
           </div>
           
@@ -134,21 +149,23 @@ export default function AdminItemCard({ item, showDeleted = false }: AdminItemCa
                 position: "absolute",
                 bottom: "10px",
                 right: "10px",
-                background: "rgba(0,0,0,0.65)",
-                backdropFilter: "blur(4px)",
-                padding: "4px 8px",
+                background: "rgba(0,0,0,0.72)",
+                backdropFilter: "blur(6px)",
+                padding: "4px 9px",
                 borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
                 gap: "4px",
-                fontSize: "11px",
-                fontWeight: 600,
+                fontSize: "11.5px",
+                fontWeight: 700,
+                letterSpacing: "0.02em",
                 color: "#fff",
-                border: "1px solid rgba(255,255,255,0.2)",
+                border: "1px solid rgba(255,255,255,0.25)",
+                boxShadow: "0 2px 6px rgba(0, 0, 0, 0.25)",
               }}
             >
-              <MapPin size={12} />
-              {item.boxLocation}
+              <MapPin size={12} strokeWidth={2.4} />
+              <span>{item.boxLocation}</span>
             </div>
           )}
         </div>
@@ -180,30 +197,38 @@ export default function AdminItemCard({ item, showDeleted = false }: AdminItemCa
               <Tv2 size={16} color="var(--color-accent-text)" />
             </div>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <h3
+              <span
                 style={{
-                  fontSize: "15px",
-                  fontWeight: 600,
-                  color: "var(--color-text-primary)",
-                  lineHeight: 1.3,
+                  display: "block",
+                  fontSize: "11.5px",
+                  fontWeight: 700,
+                  color: "var(--color-text-secondary)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  lineHeight: 1.2,
+                  marginBottom: "2px",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
                 }}
               >
                 {item.brand.name}
-              </h3>
-              <p
+              </span>
+              <h3
                 style={{
-                  fontSize: "13px",
-                  color: "var(--color-text-muted)",
+                  fontSize: "15.5px",
+                  fontWeight: 700,
+                  color: "var(--color-text-primary)",
+                  fontFamily: "var(--font-mono)",
+                  lineHeight: 1.3,
+                  letterSpacing: "-0.015em",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
                 }}
               >
                 {item.modelNumber}
-              </p>
+              </h3>
             </div>
             <div style={{ color: "var(--color-text-muted)" }}>
               {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -226,9 +251,23 @@ export default function AdminItemCard({ item, showDeleted = false }: AdminItemCa
           }}
         >
           {/* Metadata Row */}
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "var(--color-text-muted)" }}>
-            <span>Added: {formatDate(item.createdAt)}</span>
-            <span>ID: <span style={{ fontFamily: "monospace" }}>{item.id.slice(0, 8)}</span></span>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "var(--color-text-muted)", fontVariantNumeric: "tabular-nums" }}>
+            <span>
+              {item.isDeleted || localDeleted ? "Deleted: " : "Added: "}
+              <strong
+                style={{
+                  fontWeight: 600,
+                  color: item.isDeleted || localDeleted ? "var(--color-danger)" : "var(--color-text-secondary)",
+                }}
+              >
+                {formatDate(
+                  (item.isDeleted || localDeleted) && item.deletedAt
+                    ? item.deletedAt
+                    : item.createdAt
+                )}
+              </strong>
+            </span>
+            <span>ID: <span style={{ fontFamily: "var(--font-mono)", fontWeight: 600, color: "var(--color-text-secondary)" }}>{item.id.slice(0, 8)}</span></span>
           </div>
 
           {/* Actions Row */}
@@ -239,14 +278,45 @@ export default function AdminItemCard({ item, showDeleted = false }: AdminItemCa
                 Processing...
               </div>
             ) : localDeleted ? (
-              <button
-                onClick={handleRestore}
-                className="btn-secondary"
-                style={{ padding: "8px 12px", fontSize: "13px", flex: 1 }}
-              >
-                <RotateCcw size={14} />
-                Restore Item
-              </button>
+              <div style={{ display: "flex", gap: "8px", width: "100%" }}>
+                <Link
+                  href={`/admin/inventory/${item.id}`}
+                  className="btn-secondary"
+                  style={{
+                    padding: "8px 12px",
+                    fontSize: "13px",
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "6px",
+                  }}
+                  title="View Item Details"
+                >
+                  <Eye size={15} />
+                  <span>View Details</span>
+                </Link>
+                <button
+                  onClick={() => setIsRestoreModalOpen(true)}
+                  className="btn-secondary"
+                  style={{
+                    padding: "8px 12px",
+                    fontSize: "13px",
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "6px",
+                    color: "#16a34a",
+                    borderColor: "rgba(34, 197, 94, 0.35)",
+                    background: "rgba(34, 197, 94, 0.08)",
+                  }}
+                  title="Restore this item back to active inventory"
+                >
+                  <RotateCcw size={15} />
+                  <span>Restore</span>
+                </button>
+              </div>
             ) : (
               <>
                 <Link
@@ -286,6 +356,13 @@ export default function AdminItemCard({ item, showDeleted = false }: AdminItemCa
         isDeleting={isPending}
         onConfirm={handleConfirmDelete}
         onClose={() => setIsDeleteModalOpen(false)}
+      />
+
+      {/* Premium Slide-To-Restore Confirmation Modal */}
+      <SlideToRestoreModal
+        isOpen={isRestoreModalOpen}
+        item={item}
+        onClose={() => setIsRestoreModalOpen(false)}
       />
     </article>
   );

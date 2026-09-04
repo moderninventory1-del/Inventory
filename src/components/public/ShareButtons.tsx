@@ -66,7 +66,8 @@ ${itemUrl}`;
           justifyContent: "center",
           gap: "8px",
           padding: "12px 16px",
-          fontWeight: 600,
+          fontSize: "14px",
+          fontWeight: 700,
         }}
       >
         <svg

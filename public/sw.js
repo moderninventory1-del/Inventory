@@ -1,7 +1,7 @@
 // public/sw.js
 // High-performance Service Worker for instant loading, offline caching, and native app feel
 
-const CACHE_VERSION = "modern-electronics-v1";
+const CACHE_VERSION = "modern-electronics-v5";
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const IMAGE_CACHE = `images-${CACHE_VERSION}`;
 const DATA_CACHE = `data-${CACHE_VERSION}`;
@@ -42,7 +42,7 @@ self.addEventListener("install", (event) => {
   );
 });
 
-// 2. Activate: Clean up any old caches from previous versions
+// 2. Activate: Purge ALL previous caches on version upgrade
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
@@ -69,6 +69,11 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // NEVER intercept requests on localhost / 127.0.0.1 to avoid caching development code
+  if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+    return;
+  }
+
   // Ignore non-GET requests, chrome extensions, or auth endpoints
   if (
     request.method !== "GET" ||
@@ -78,9 +83,26 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Strategy A: Next.js static chunks, CSS, fonts, SVG icons (Cache-First, permanent immutable)
+  // Strategy A: Next.js static JS chunks (Network-First with cache fallback)
+  if (url.pathname.startsWith("/_next/static/")) {
+    event.respondWith(
+      fetch(request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(STATIC_CACHE).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  // Strategy A2: Truly immutable fonts and icon images (Cache-First)
   if (
-    url.pathname.startsWith("/_next/static/") ||
     url.pathname.endsWith(".svg") ||
     url.pathname.endsWith(".png") ||
     url.pathname.endsWith(".ico") ||

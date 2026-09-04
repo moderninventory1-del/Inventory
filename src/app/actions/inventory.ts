@@ -219,6 +219,8 @@ export async function restoreInventoryItem(id: string): Promise<ActionResult> {
     revalidatePath("/");
     revalidatePath("/admin/inventory");
     revalidatePath("/admin");
+    revalidatePath(`/admin/inventory/${id}`);
+    revalidatePath(`/admin/inventory/${id}/edit`);
 
     return { success: true };
   } catch (err) {
@@ -279,4 +281,84 @@ export type CategoryActionResult =
 
 export async function createCategory(name: string): Promise<CategoryActionResult> {
   return { success: false, error: "Categories are managed by system enum" };
+}
+
+// ─── Not Sure State Management ──────────────────────────────────────────────
+
+export async function toggleNotSureStatus(
+  id: string,
+  isNotSure: boolean,
+  remarks?: string | null
+): Promise<ActionResult> {
+  try {
+    await requireAdmin();
+
+    await prisma.inventoryItem.update({
+      where: { id },
+      data: {
+        isNotSure,
+        notSureAt: isNotSure ? new Date() : null,
+        notSureRemarks: isNotSure ? remarks?.trim() || null : null,
+      },
+    });
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/inventory");
+    revalidatePath(`/admin/inventory/${id}`);
+
+    return { success: true };
+  } catch (err) {
+    console.error("[toggleNotSureStatus]", err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to update status",
+    };
+  }
+}
+
+export async function resolveNotSureItem(
+  id: string,
+  resolution: "sold" | "not_sold"
+): Promise<ActionResult> {
+  try {
+    await requireAdmin();
+
+    if (resolution === "sold") {
+      // Mark as sold out / soft delete
+      await prisma.inventoryItem.update({
+        where: { id },
+        data: {
+          isDeleted: true,
+          deletedAt: new Date(),
+          isNotSure: false,
+          notSureAt: null,
+          notSureRemarks: null,
+        },
+      });
+    } else {
+      // Keep in stock, clear Not Sure tag
+      await prisma.inventoryItem.update({
+        where: { id },
+        data: {
+          isNotSure: false,
+          notSureAt: null,
+          notSureRemarks: null,
+        },
+      });
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/inventory");
+    revalidatePath(`/admin/inventory/${id}`);
+    revalidatePath("/");
+    revalidatePath(`/item/${id}`);
+
+    return { success: true };
+  } catch (err) {
+    console.error("[resolveNotSureItem]", err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to resolve item",
+    };
+  }
 }

@@ -55,9 +55,9 @@ export default function AdminPageHeader({
             <div>
               <h1
                 style={{
-                  fontSize: "22px",
+                  fontSize: "24px",
                   fontWeight: 800,
-                  letterSpacing: "-0.03em",
+                  letterSpacing: "-0.035em",
                   color: "var(--color-text-primary)",
                   lineHeight: 1.2,
                 }}
@@ -66,12 +66,15 @@ export default function AdminPageHeader({
               </h1>
               <p
                 style={{
-                  fontSize: "13px",
+                  fontSize: "13.5px",
                   color: "var(--color-text-muted)",
                   marginTop: "3px",
                 }}
               >
-                {totalCount} {statusLabel}item{totalCount !== 1 ? "s" : ""}
+                <strong style={{ color: "var(--color-text-secondary)", fontWeight: 700 }} className="tabular-nums">
+                  {totalCount}
+                </strong>{" "}
+                {statusLabel}item{totalCount !== 1 ? "s" : ""}
               </p>
             </div>
           </div>
@@ -84,15 +87,15 @@ export default function AdminPageHeader({
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "7px",
-                fontSize: "13px",
-                fontWeight: 600,
+                fontSize: "13.5px",
+                fontWeight: 700,
                 padding: "8px 16px",
                 borderRadius: "100px",
                 textDecoration: "none",
                 boxShadow: "0 2px 8px rgba(0, 113, 227, 0.25)",
               }}
             >
-              <PlusCircle size={15} strokeWidth={2.2} />
+              <PlusCircle size={15} strokeWidth={2.4} />
               <span>Add Item</span>
             </Link>
           </div>

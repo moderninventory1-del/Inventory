@@ -28,8 +28,8 @@ export default function SlideToSignOutModal({
   useEffect(() => {
     if (isOpen && trackRef.current) {
       const trackWidth = trackRef.current.clientWidth;
-      const thumbWidth = 48; // thumb width
-      const padding = 10; // total horizontal padding
+      const thumbWidth = 50; // thumb width
+      const padding = 8; // 4px left + 4px right
       setMaxDrag(Math.max(100, trackWidth - thumbWidth - padding));
       setDragX(0);
       setIsSigningOut(false);
@@ -41,6 +41,11 @@ export default function SlideToSignOutModal({
     setIsDragging(false);
     isDraggingRef.current = false;
     setDragX(maxDrag);
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      try {
+        navigator.vibrate(40);
+      } catch {}
+    }
     setTimeout(() => {
       signOut({ callbackUrl: "/login" });
     }, 400);
@@ -52,16 +57,22 @@ export default function SlideToSignOutModal({
     setIsDragging(true);
     isDraggingRef.current = true;
     startXRef.current = e.touches[0].clientX - dragX;
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      try {
+        navigator.vibrate(15);
+      } catch {}
+    }
   };
 
   const handleTouchMove = useCallback(
     (e: TouchEvent) => {
       if (!isDraggingRef.current || isSigningOut) return;
+      if (e.cancelable) e.preventDefault();
       const clientX = e.touches[0].clientX;
       const newX = Math.max(0, Math.min(clientX - startXRef.current, maxDrag));
       setDragX(newX);
 
-      if (newX >= maxDrag * 0.88) {
+      if (newX >= maxDrag * 0.86) {
         triggerSignOut();
       }
     },
@@ -89,7 +100,7 @@ export default function SlideToSignOutModal({
       const newX = Math.max(0, Math.min(e.clientX - startXRef.current, maxDrag));
       setDragX(newX);
 
-      if (newX >= maxDrag * 0.88) {
+      if (newX >= maxDrag * 0.86) {
         triggerSignOut();
       }
     },
@@ -226,25 +237,31 @@ export default function SlideToSignOutModal({
             height: "58px",
             borderRadius: "100px",
             background: "rgba(0, 0, 0, 0.04)",
-            border: "1.5px solid rgba(0, 0, 0, 0.07)",
+            border: "1px solid rgba(0, 0, 0, 0.08)",
             display: "flex",
             alignItems: "center",
             overflow: "hidden",
             userSelect: "none",
+            WebkitUserSelect: "none",
             touchAction: "none",
-            boxShadow: "inset 0 1px 3px rgba(0, 0, 0, 0.04)",
+            boxShadow: "inset 0 1.5px 4px rgba(0, 0, 0, 0.06)",
           }}
         >
-          {/* Progress fill behind thumb */}
+          {/* Progress Capsule Fill (Inset pill perfectly hugging the circular thumb) */}
           <div
             style={{
               position: "absolute",
-              top: 0,
-              bottom: 0,
-              left: 0,
-              width: `${dragX + 50}px`,
-              background: "linear-gradient(90deg, rgba(255, 59, 48, 0.08), rgba(255, 59, 48, 0.22))",
-              transition: isDragging ? "none" : "width 240ms cubic-bezier(0.16, 1, 0.3, 1)",
+              top: "4px",
+              bottom: "4px",
+              left: "4px",
+              width: dragX > 0 ? `${dragX + 50}px` : "0px",
+              opacity: dragX > 0 ? 1 : 0,
+              borderRadius: "100px",
+              background: "linear-gradient(90deg, rgba(255, 59, 48, 0.14) 0%, rgba(255, 59, 48, 0.85) 100%)",
+              boxShadow: "0 0 12px rgba(255, 59, 48, 0.25)",
+              transition: isDragging ? "none" : "width 260ms cubic-bezier(0.2, 0.9, 0.3, 1), opacity 150ms ease",
+              pointerEvents: "none",
+              willChange: "width, opacity",
             }}
           />
 
@@ -256,6 +273,7 @@ export default function SlideToSignOutModal({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              paddingLeft: "36px",
               pointerEvents: "none",
               opacity: textOpacity,
               transition: isDragging ? "none" : "opacity 200ms ease",
@@ -285,21 +303,28 @@ export default function SlideToSignOutModal({
             onTouchStart={handleTouchStart}
             style={{
               position: "absolute",
-              left: "5px",
-              top: "5px",
-              width: "48px",
-              height: "48px",
+              left: "4px",
+              top: "4px",
+              width: "50px",
+              height: "50px",
               borderRadius: "50%",
               background: isSigningOut ? "#ff3b30" : "#ffffff",
               color: isSigningOut ? "#ffffff" : "#ff3b30",
-              boxShadow: "0 3px 12px rgba(0, 0, 0, 0.16), 0 1px 4px rgba(0, 0, 0, 0.08)",
+              border: "0.5px solid rgba(0, 0, 0, 0.04)",
+              boxShadow: isDragging
+                ? "0 8px 24px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.12)"
+                : "0 3px 12px rgba(0, 0, 0, 0.14), 0 1px 3px rgba(0, 0, 0, 0.08)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              cursor: isSigningOut ? "wait" : "grab",
-              transform: `translateX(${dragX}px)`,
-              transition: isDragging ? "none" : "transform 240ms cubic-bezier(0.16, 1, 0.3, 1), background-color 200ms ease",
+              cursor: isSigningOut ? "wait" : isDragging ? "grabbing" : "grab",
+              transform: `translateX(${dragX}px) scale(${isDragging ? 1.04 : 1})`,
+              transition: isDragging
+                ? "none"
+                : "transform 260ms cubic-bezier(0.2, 0.9, 0.3, 1), background-color 200ms ease, box-shadow 200ms ease",
               zIndex: 2,
+              willChange: "transform",
+              touchAction: "none",
             }}
           >
             {isSigningOut ? (

@@ -20,6 +20,9 @@ export function buildForwardSubsequenceRegex(query: string): string | null {
     .join(".*");
 }
 
+import { extractItemIdFromQuery } from "@/lib/utils";
+export { extractItemIdFromQuery };
+
 export interface SearchOptions {
   search?: string;
   category?: string;
@@ -46,6 +49,40 @@ export async function searchPublicInventory({
   limit = 15,
 }: SearchOptions): Promise<PaginatedResponse<PublicInventoryItem>> {
   const cleanSearch = search.trim();
+  const extractedId = extractItemIdFromQuery(cleanSearch);
+
+  // If query is or contains a direct Item ID / URL, resolve directly
+  if (extractedId) {
+    const directItem = await prisma.inventoryItem.findFirst({
+      where: {
+        id: extractedId,
+        isDeleted: false,
+        ...(category ? { category: category as any } : {}),
+        ...(brandId ? { brandId } : {}),
+      },
+      select: {
+        id: true,
+        modelNumber: true,
+        brandId: true,
+        brand: { select: { id: true, name: true } },
+        category: true,
+        description: true,
+        frontImage: true,
+        backImage: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (directItem) {
+      return {
+        items: [directItem as PublicInventoryItem],
+        nextCursor: null,
+        total: 1,
+      };
+    }
+  }
+
   const regex = buildForwardSubsequenceRegex(cleanSearch);
   const sortDirection = sort === "oldest" ? "asc" : "desc";
 
@@ -170,12 +207,36 @@ export async function searchAdminInventory({
   limit = 15,
 }: AdminSearchOptions): Promise<PaginatedResponse<InventoryItem>> {
   const cleanSearch = search.trim();
-  const regex = buildForwardSubsequenceRegex(cleanSearch);
+  const extractedId = extractItemIdFromQuery(cleanSearch);
+
+  // If query is or contains a direct Item ID or URL from user/admin panel, resolve immediately!
+  if (extractedId) {
+    const directItem = await prisma.inventoryItem.findFirst({
+      where: {
+        id: extractedId,
+        isDeleted:
+          status === "deleted" ? true : status === "active" ? false : undefined,
+        ...(category ? { category: category as any } : {}),
+        ...(brandId ? { brandId } : {}),
+      },
+      include: { brand: true },
+    });
+
+    if (directItem) {
+      return {
+        items: [directItem as unknown as InventoryItem],
+        nextCursor: null,
+      };
+    }
+  }
+
+  const effectiveSearch = extractedId || cleanSearch;
+  const regex = buildForwardSubsequenceRegex(effectiveSearch);
   const cleanBox = box ? box.toLowerCase().replace(/[^a-z0-9]/g, "") : "";
-  const sortDirection = sort === "oldest" ? "asc" : "desc";
+  const sortDirection: "asc" | "desc" = sort === "oldest" ? "asc" : "desc";
 
   // If no search query and no box filter, use standard Prisma query
-  if (!cleanSearch && !cleanBox) {
+  if (!effectiveSearch && !cleanBox) {
     const where = {
       isDeleted:
         status === "deleted" ? true : status === "active" ? false : undefined,
@@ -183,11 +244,20 @@ export async function searchAdminInventory({
       ...(brandId ? { brandId } : {}),
     };
 
+    const orderBy =
+      status === "deleted"
+        ? [
+            { deletedAt: sortDirection },
+            { updatedAt: sortDirection },
+            { createdAt: sortDirection },
+          ]
+        : [{ createdAt: sortDirection }];
+
     const rawItems = await prisma.inventoryItem.findMany({
       where,
       take: limit + 1,
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-      orderBy: { createdAt: sortDirection },
+      orderBy,
       include: { brand: true },
     });
 
@@ -228,11 +298,11 @@ export async function searchAdminInventory({
     params.push(cleanBox);
   }
 
-  const hasSearch = Boolean(cleanSearch && regex);
+  const hasSearch = Boolean(effectiveSearch && regex);
   let rankSelect = "1 as rank";
 
   if (hasSearch) {
-    const rawPattern = `%${cleanSearch}%`;
+    const rawPattern = `%${effectiveSearch}%`;
     const pSearch = paramIdx++;
     const pRegex = paramIdx++;
     params.push(rawPattern, regex);
@@ -273,6 +343,8 @@ export async function searchAdminInventory({
       i."boxLocation",
       i."isDeleted",
       i."deletedAt",
+      i."isNotSure",
+      i."notSureAt",
       i."createdAt",
       i."updatedAt",
       json_build_object('id', b.id, 'name', b.name) as brand,
@@ -280,7 +352,11 @@ export async function searchAdminInventory({
     FROM "InventoryItem" i
     LEFT JOIN "Brand" b ON i."brandId" = b.id
     ${whereClause}
-    ORDER BY ${hasSearch ? "rank ASC," : ""} i."createdAt" ${sort === "oldest" ? "ASC" : "DESC"}
+    ORDER BY ${hasSearch ? "rank ASC," : ""} ${
+      status === "deleted"
+        ? `COALESCE(i."deletedAt", i."updatedAt", i."createdAt") ${sort === "oldest" ? "ASC" : "DESC"}`
+        : `i."createdAt" ${sort === "oldest" ? "ASC" : "DESC"}`
+    }
     LIMIT ${limit + 1} OFFSET ${offset};
   `;
 

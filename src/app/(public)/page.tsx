@@ -17,8 +17,9 @@ export const metadata: Metadata = {
     "Modern Electronics — 1590/1, sector 45B, Burail, Chandigarh. Browse our available TV spare parts and boards.",
 };
 
-// Revalidate every 60 seconds (ISR)
-export const revalidate = 60;
+// Force dynamic rendering so newly added/deleted items appear immediately
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 const LIMIT = 15;
 

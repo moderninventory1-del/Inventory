@@ -38,9 +38,9 @@ const pool =
   new Pool({
     connectionString: getSanitizedConnectionString(),
     ssl: { rejectUnauthorized: false },
-    max: 1, // Single connection per serverless function instance avoids exhausting the 15 pool limit
-    idleTimeoutMillis: 1000, // Return idle connections immediately to the pool
-    connectionTimeoutMillis: 5000, // Fail fast if unreachable
+    max: 10, // Allow concurrent queries so Promise.all (page + metadata + session) execute in parallel without queue starvation
+    idleTimeoutMillis: 30000, // Keep connection warm for 30s to reuse TLS connections instead of 3000ms re-handshakes on every click
+    connectionTimeoutMillis: 15000, // 15s timeout to absorb geographic cross-continent latency without false timeouts
   });
 
 const adapter = new PrismaPg(pool);

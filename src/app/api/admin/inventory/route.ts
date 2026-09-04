@@ -43,7 +43,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       limit,
     });
 
-    return NextResponse.json(response);
+    return NextResponse.json(response, {
+      headers: {
+        "Cache-Control": "no-store, no-cache, must-revalidate",
+      },
+    });
   } catch (error) {
     console.error("[/api/admin/inventory GET]", error);
     return NextResponse.json(

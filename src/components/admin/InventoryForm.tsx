@@ -5,13 +5,15 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, Tv2, Tag, Plus, Package } from "lucide-react";
 import ImageUpload from "./ImageUpload";
+import IOSSelect from "./IOSSelect";
 import { DEFAULT_CATEGORIES } from "@/types";
 import type { InventoryItem } from "@/types";
 import type { ActionResult } from "@/app/actions/inventory";
 
 import { createBrand, createCategory } from "@/app/actions/inventory";
+import { clearAllInventoryCaches } from "@/lib/scroll-cache";
 
 interface InventoryFormProps {
   item?: InventoryItem;
@@ -44,8 +46,30 @@ export default function InventoryForm({
   const [isSavingCategory, setIsSavingCategory] = useState(false);
 
   const [categoryId, setCategoryId] = useState(item?.category ?? "");
+  const [boxLocationValue, setBoxLocationValue] = useState(item?.boxLocation ?? "");
+  const [brandBoxes, setBrandBoxes] = useState<{ key: string; name: string }[]>([]);
   const [lastEntry, setLastEntry] = useState<Record<string, string> | null>(null);
   const isEditing = !!item;
+
+  // Load existing boxes for the selected brand to offer quick box suggestions
+  useEffect(() => {
+    if (!selectedBrandId) {
+      setBrandBoxes([]);
+      return;
+    }
+    let active = true;
+    fetch(`/api/admin/boxes?brandId=${encodeURIComponent(selectedBrandId)}`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (active && Array.isArray(data)) {
+          setBrandBoxes(data);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [selectedBrandId]);
 
   useEffect(() => {
     if (!isEditing) {
@@ -56,6 +80,7 @@ export default function InventoryForm({
           setLastEntry(parsed);
           if (parsed.brandId) setSelectedBrandId(parsed.brandId);
           if (parsed.category) setCategoryId(parsed.category);
+          if (parsed.boxLocation) setBoxLocationValue(parsed.boxLocation);
         } catch (e) {
           // Ignore parse errors
         }
@@ -68,6 +93,9 @@ export default function InventoryForm({
     setIsSubmitting(true);
 
     try {
+      // Clear scroll cache so newly created or edited items immediately reflect without stale cache
+      clearAllInventoryCaches();
+
       const formData = new FormData(e.currentTarget);
 
       if (!isEditing) {
@@ -159,7 +187,7 @@ export default function InventoryForm({
     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
       {/* Basic Info */}
       <section className="card" style={{ padding: "24px" }}>
-        <h2 style={{ fontSize: "15px", fontWeight: 600, marginBottom: "20px", color: "var(--color-text-secondary)" }}>
+        <h2 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "20px", color: "var(--color-text-primary)", letterSpacing: "-0.015em" }}>
           Item Details
         </h2>
 
@@ -209,31 +237,45 @@ export default function InventoryForm({
                 </button>
               </div>
             ) : (
-              <div style={{ display: "flex", gap: "8px" }}>
-                <select
-                  id="brandId"
-                  name="brandId"
-                  className="input-field"
-                  value={selectedBrandId}
-                  onChange={(e) => setSelectedBrandId(e.target.value)}
-                  required
-                  disabled={isSubmitting}
-                >
-                  <option value="">Select brand…</option>
-                  {brands.map((brand) => (
-                    <option key={brand.id} value={brand.id}>
-                      {brand.name}
-                    </option>
-                  ))}
-                </select>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <div style={{ flex: 1 }}>
+                  <IOSSelect
+                    id="brandId"
+                    name="brandId"
+                    label="Brand"
+                    placeholder="Select brand…"
+                    options={brands.map((brand) => ({
+                      value: brand.id,
+                      label: brand.name,
+                    }))}
+                    value={selectedBrandId}
+                    onChange={(val) => setSelectedBrandId(val)}
+                    required
+                    disabled={isSubmitting}
+                    icon={<Tv2 size={16} />}
+                    onAddNew={() => setIsAddingBrand(true)}
+                    addNewLabel="+ Add New Brand"
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={() => setIsAddingBrand(true)}
                   className="btn-secondary"
-                  style={{ flexShrink: 0, padding: "8px 12px", fontSize: "12px" }}
+                  style={{
+                    flexShrink: 0,
+                    height: "42px",
+                    padding: "0 12px",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    borderRadius: "10px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
                   title="Add New Brand"
                 >
-                  + New
+                  <Plus size={14} />
+                  <span>New</span>
                 </button>
               </div>
             )}
@@ -252,6 +294,7 @@ export default function InventoryForm({
               defaultValue={item?.modelNumber ?? ""}
               required={isEditing || !lastEntry?.modelNumber}
               disabled={isSubmitting}
+              style={{ fontFamily: "var(--font-mono)", fontWeight: 600, letterSpacing: "-0.01em" }}
             />
           </div>
 
@@ -294,49 +337,88 @@ export default function InventoryForm({
                 </button>
               </div>
             ) : (
-              <div style={{ display: "flex", gap: "8px" }}>
-                <select
-                  id="category"
-                  name="category"
-                  className="input-field"
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                  required
-                  disabled={isSubmitting}
-                >
-                  <option value="">Select category…</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id || cat.name} value={cat.name}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <div style={{ flex: 1 }}>
+                  <IOSSelect
+                    id="category"
+                    name="category"
+                    label="Category"
+                    placeholder="Select category…"
+                    options={categories.map((cat) => ({
+                      value: cat.name,
+                      label: cat.name,
+                    }))}
+                    value={categoryId}
+                    onChange={(val) => setCategoryId(val)}
+                    required
+                    disabled={isSubmitting}
+                    icon={<Tag size={16} />}
+                    onAddNew={() => setIsAddingCategory(true)}
+                    addNewLabel="+ Add New Category"
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={() => setIsAddingCategory(true)}
                   className="btn-secondary"
-                  style={{ flexShrink: 0, padding: "8px 12px", fontSize: "12px" }}
+                  style={{
+                    flexShrink: 0,
+                    height: "42px",
+                    padding: "0 12px",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    borderRadius: "10px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
                   title="Add New Category"
                 >
-                  + New
+                  <Plus size={14} />
+                  <span>New</span>
                 </button>
               </div>
             )}
           </div>
 
           <div>
-            <label htmlFor="boxLocation" className="input-label">
-              Box Location
-            </label>
-            <input
-              id="boxLocation"
-              name="boxLocation"
-              type="text"
-              className="input-field"
-              placeholder={!isEditing && lastEntry?.boxLocation ? `Leave empty to use: ${lastEntry.boxLocation}` : "e.g. Shelf A3, Box 12"}
-              defaultValue={item?.boxLocation ?? ""}
-              disabled={isSubmitting}
-            />
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+              <label htmlFor="boxLocation" className="input-label" style={{ marginBottom: 0 }}>
+                Box Location
+              </label>
+              {brandBoxes.length > 0 && (
+                <span style={{ fontSize: "11px", color: "var(--color-text-muted)", fontWeight: 500 }}>
+                  {brandBoxes.length} {brandBoxes.length === 1 ? "existing box" : "existing boxes"}
+                </span>
+              )}
+            </div>
+            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <input
+                id="boxLocation"
+                name="boxLocation"
+                type="text"
+                className="input-field"
+                placeholder={!isEditing && lastEntry?.boxLocation ? `Leave empty to use: ${lastEntry.boxLocation}` : "e.g. Shelf A3, Box 12"}
+                value={boxLocationValue}
+                onChange={(e) => setBoxLocationValue(e.target.value)}
+                disabled={isSubmitting}
+                style={{ flex: 1 }}
+              />
+              {brandBoxes.length > 0 && (
+                <div style={{ width: "160px", flexShrink: 0 }}>
+                  <IOSSelect
+                    name="_boxLocationHelper"
+                    label="Box"
+                    placeholder="Pick box…"
+                    options={brandBoxes.map((b) => ({ value: b.name, label: b.name }))}
+                    value={brandBoxes.some((b) => b.name === boxLocationValue) ? boxLocationValue : ""}
+                    onChange={(val) => setBoxLocationValue(val)}
+                    disabled={isSubmitting}
+                    icon={<Package size={14} />}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -359,7 +441,7 @@ export default function InventoryForm({
 
       {/* Images */}
       <section className="card" style={{ padding: "24px" }}>
-        <h2 style={{ fontSize: "15px", fontWeight: 600, marginBottom: "20px", color: "var(--color-text-secondary)" }}>
+        <h2 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "20px", color: "var(--color-text-primary)", letterSpacing: "-0.015em" }}>
           Images
         </h2>
 

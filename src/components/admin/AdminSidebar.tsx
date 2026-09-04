@@ -64,10 +64,10 @@ export default function AdminSidebar() {
           <BrandLogo size={20} color="#fff" />
         </div>
         <div>
-          <p style={{ fontSize: "13px", fontWeight: 700, color: "var(--color-text-primary)" }}>
+          <p style={{ fontSize: "13.5px", fontWeight: 800, letterSpacing: "-0.01em", color: "var(--color-text-primary)" }}>
             TV Inventory
           </p>
-          <p style={{ fontSize: "11px", color: "var(--color-text-muted)" }}>Admin Panel</p>
+          <p style={{ fontSize: "11px", fontWeight: 600, color: "var(--color-text-muted)" }}>Admin Panel</p>
         </div>
       </div>
 
@@ -87,14 +87,14 @@ export default function AdminSidebar() {
                 borderRadius: "var(--radius-sm)",
                 textDecoration: "none",
                 fontSize: "14px",
-                fontWeight: active ? 600 : 400,
+                fontWeight: active ? 700 : 500,
                 color: active ? "var(--color-accent-text)" : "var(--color-text-secondary)",
                 background: active ? "var(--color-accent-glow)" : "transparent",
                 border: active ? "1px solid rgba(0, 113, 227, 0.15)" : "1px solid transparent",
                 transition: "all var(--transition-fast)",
               }}
             >
-              <Icon size={16} />
+              <Icon size={16} strokeWidth={active ? 2.2 : 1.8} />
               {label}
             </Link>
           );
@@ -106,7 +106,7 @@ export default function AdminSidebar() {
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
           className="btn-secondary"
-          style={{ width: "100%", justifyContent: "flex-start", gap: "10px", fontSize: "13px" }}
+          style={{ width: "100%", justifyContent: "flex-start", gap: "10px", fontSize: "13px", fontWeight: 600 }}
         >
           <LogOut size={15} />
           Sign Out

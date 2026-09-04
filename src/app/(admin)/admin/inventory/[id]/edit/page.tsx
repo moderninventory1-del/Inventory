@@ -18,12 +18,16 @@ interface PageProps {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id } = await params;
-  const item = await prisma.inventoryItem.findUnique({
-    where: { id },
-    select: { brand: { select: { name: true } }, modelNumber: true },
-  });
-  return { title: item ? `Edit — ${item.brand.name} ${item.modelNumber}` : "Edit Item" };
+  try {
+    const { id } = await params;
+    const item = await prisma.inventoryItem.findUnique({
+      where: { id },
+      select: { brand: { select: { name: true } }, modelNumber: true },
+    });
+    return { title: item ? `Edit — ${item.brand.name} ${item.modelNumber}` : "Edit Item" };
+  } catch (e) {
+    return { title: "Edit Item | Admin" };
+  }
 }
 
 export const dynamic = "force-dynamic";
@@ -34,14 +38,40 @@ export default async function EditInventoryItemPage({ params }: PageProps) {
 
   const { id } = await params;
 
-  const item = await prisma.inventoryItem.findUnique({
-    where: { id },
-    include: { brand: true },
-  });
+  let item = null;
+  let brands: { id: string; name: string }[] = [];
+  try {
+    const [fetchedItem, fetchedBrands] = await Promise.all([
+      prisma.inventoryItem.findUnique({
+        where: { id },
+        include: { brand: true },
+      }),
+      prisma.brand.findMany({ orderBy: { name: "asc" } }),
+    ]);
+    item = fetchedItem;
+    brands = fetchedBrands;
+  } catch (err) {
+    console.error(`[EditInventoryItemPage] Error fetching item ${id}:`, err);
+  }
+
+  // Resilient retry in case of momentary connection or replication lag (e.g. right after restoring)
+  if (!item) {
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      item = await prisma.inventoryItem.findUnique({
+        where: { id },
+        include: { brand: true },
+      });
+      if (brands.length === 0) {
+        brands = await prisma.brand.findMany({ orderBy: { name: "asc" } });
+      }
+    } catch (retryErr) {
+      console.error(`[EditInventoryItemPage] Retry error fetching item ${id}:`, retryErr);
+    }
+  }
 
   if (!item) notFound();
 
-  const brands = await prisma.brand.findMany({ orderBy: { name: "asc" } });
   const categories = ITEM_CATEGORIES.map((c) => ({ id: c, name: c }));
 
   // Bind the id to the action

@@ -285,8 +285,8 @@ export default async function ItemDetailPage({ params }: PageProps) {
           background: var(--color-bg-card);
           border: 1px solid var(--color-border);
           border-radius: 100px;
-          font-size: 13px;
-          font-weight: 600;
+          font-size: 13.5px;
+          font-weight: 700;
           color: var(--color-text-primary);
           text-decoration: none;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -303,6 +303,7 @@ export default async function ItemDetailPage({ params }: PageProps) {
           align-items: center;
           gap: 8px;
           font-size: 13px;
+          font-weight: 500;
           color: var(--color-text-muted);
         }
         .crumb-link {
@@ -318,7 +319,8 @@ export default async function ItemDetailPage({ params }: PageProps) {
         }
         .crumb-current {
           color: var(--color-text-primary);
-          font-weight: 600;
+          font-weight: 700;
+          font-family: var(--font-mono);
         }
 
         /* 2-Column Split Grid */
@@ -407,7 +409,7 @@ export default async function ItemDetailPage({ params }: PageProps) {
         .hero-brand-name {
           font-size: clamp(28px, 4.5vw, 38px);
           font-weight: 800;
-          letter-spacing: -0.03em;
+          letter-spacing: -0.035em;
           color: var(--color-text-primary);
           line-height: 1.1;
           margin: 0 0 12px 0;
@@ -415,11 +417,12 @@ export default async function ItemDetailPage({ params }: PageProps) {
         .model-number-display {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
           background: var(--color-bg-surface);
-          border: 1px solid var(--color-border);
-          padding: 6px 14px;
-          border-radius: 10px;
+          border: 1.5px solid var(--color-border);
+          padding: 8px 16px;
+          border-radius: 12px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         }
         .model-tag-label {
           font-size: 11px;
@@ -429,11 +432,12 @@ export default async function ItemDetailPage({ params }: PageProps) {
           color: var(--color-text-muted);
         }
         .model-tag-value {
-          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-          font-size: 15px;
-          font-weight: 700;
+          font-family: var(--font-mono);
+          font-size: 18px;
+          font-weight: 800;
           color: var(--color-text-primary);
-          letter-spacing: -0.01em;
+          letter-spacing: -0.015em;
+          font-variant-numeric: tabular-nums;
         }
 
         /* Specs Card */
@@ -448,7 +452,7 @@ export default async function ItemDetailPage({ params }: PageProps) {
           margin-bottom: 14px;
         }
         .specs-section-title {
-          font-size: 12px;
+          font-size: 11.5px;
           font-weight: 800;
           letter-spacing: 0.08em;
           text-transform: uppercase;
@@ -460,10 +464,10 @@ export default async function ItemDetailPage({ params }: PageProps) {
           align-items: center;
           gap: 4px;
           font-size: 11px;
-          font-weight: 600;
+          font-weight: 700;
           color: var(--color-accent);
           background: rgba(0, 113, 227, 0.08);
-          padding: 2px 8px;
+          padding: 3px 9px;
           border-radius: 100px;
         }
         .specs-list {
@@ -495,7 +499,7 @@ export default async function ItemDetailPage({ params }: PageProps) {
           border: 1px solid var(--color-border);
           display: flex;
           align-items: center;
-          justify-content: center;
+          justifyContent: center;
           color: var(--color-text-muted);
           flex-shrink: 0;
         }
@@ -505,25 +509,29 @@ export default async function ItemDetailPage({ params }: PageProps) {
           color: var(--color-accent);
         }
         .spec-row-label {
-          font-size: 13px;
+          font-size: 13.5px;
           font-weight: 600;
-          color: var(--color-text-muted);
+          color: var(--color-text-secondary);
         }
         .spec-row-value {
-          font-size: 14px;
-          font-weight: 600;
+          font-size: 14.5px;
+          font-weight: 700;
           color: var(--color-text-primary);
           text-align: right;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
+          font-variant-numeric: tabular-nums;
         }
         .spec-row-value.highlight {
-          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          font-family: var(--font-mono);
           color: var(--color-accent-text);
+          font-weight: 800;
+          font-size: 15px;
         }
         .spec-row-value.accent {
           color: #28a745;
+          font-weight: 700;
         }
 
         /* Description */
@@ -538,8 +546,8 @@ export default async function ItemDetailPage({ params }: PageProps) {
           margin-bottom: 12px;
         }
         .description-text {
-          font-size: 14px;
-          color: var(--color-text-secondary);
+          font-size: 15px;
+          color: var(--color-text-primary);
           line-height: 1.7;
           margin: 0;
           white-space: pre-wrap;

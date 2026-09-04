@@ -9,6 +9,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Package, PackageX, TrendingUp, PlusCircle, Tv2 } from "lucide-react";
 import MobileMenuButton from "@/components/admin/MobileMenuButton";
+import AdminNotSureModal from "@/components/admin/AdminNotSureModal";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -104,18 +105,21 @@ export default async function AdminDashboard() {
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <MobileMenuButton />
           <div>
-            <h1 style={{ fontSize: "24px", fontWeight: 800, letterSpacing: "-0.03em" }}>
+            <h1 style={{ fontSize: "26px", fontWeight: 800, letterSpacing: "-0.035em" }}>
               Dashboard
             </h1>
-            <p style={{ fontSize: "14px", color: "var(--color-text-muted)", marginTop: "4px" }}>
+            <p style={{ fontSize: "14px", fontWeight: 500, color: "var(--color-text-muted)", marginTop: "3px" }}>
               Welcome back, Admin
             </p>
           </div>
         </div>
-        <Link href="/admin/inventory/new" className="btn-primary">
-          <PlusCircle size={16} />
-          Add Item
-        </Link>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <AdminNotSureModal />
+          <Link href="/admin/inventory/new" className="btn-primary">
+            <PlusCircle size={16} />
+            Add Item
+          </Link>
+        </div>
       </div>
 
       {/* Stat cards */}
@@ -134,10 +138,10 @@ export default async function AdminDashboard() {
           >
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
               <div>
-                <p style={{ fontSize: "13px", color: "var(--color-text-muted)", marginBottom: "8px" }}>
+                <p style={{ fontSize: "13.5px", fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: "6px" }}>
                   {label}
                 </p>
-                <p style={{ fontSize: "32px", fontWeight: 800, color: "var(--color-text-primary)", letterSpacing: "-0.03em" }}>
+                <p style={{ fontSize: "36px", fontWeight: 800, color: "var(--color-text-primary)", letterSpacing: "-0.035em", fontVariantNumeric: "tabular-nums" }}>
                   {value}
                 </p>
               </div>
@@ -164,10 +168,10 @@ export default async function AdminDashboard() {
       {/* Recent items */}
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-          <h2 style={{ fontSize: "16px", fontWeight: 600 }}>Recent Items</h2>
+          <h2 style={{ fontSize: "17px", fontWeight: 750, letterSpacing: "-0.02em" }}>Recent Items</h2>
           <Link
             href="/admin/inventory"
-            style={{ fontSize: "13px", color: "var(--color-accent-text)", textDecoration: "none" }}
+            style={{ fontSize: "13px", fontWeight: 600, color: "var(--color-accent-text)", textDecoration: "none" }}
           >
             View all →
           </Link>
@@ -225,11 +229,32 @@ export default async function AdminDashboard() {
                   />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: "14px", fontWeight: 500, color: "var(--color-text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {item.brand.name} {item.modelNumber}
-                  </p>
-                  <p style={{ fontSize: "12px", color: "var(--color-text-muted)" }}>
-                    {item.category}
+                  <span
+                    style={{
+                      display: "block",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      color: "var(--color-text-secondary)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.04em",
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {item.brand.name}
+                  </span>
+                  <p
+                    style={{
+                      fontSize: "14.5px",
+                      fontWeight: 700,
+                      color: "var(--color-text-primary)",
+                      fontFamily: "var(--font-mono)",
+                      letterSpacing: "-0.01em",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {item.modelNumber}
                   </p>
                 </div>
                 <span className="badge badge-accent">{item.category}</span>

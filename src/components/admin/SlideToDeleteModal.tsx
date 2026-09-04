@@ -9,7 +9,14 @@ import type { InventoryItem } from "@/types";
 
 interface SlideToDeleteModalProps {
   isOpen: boolean;
-  item: InventoryItem;
+  item: {
+    id: string;
+    modelNumber: string;
+    brand: { name: string };
+    category?: string;
+    boxLocation?: string | null;
+    frontImage?: string;
+  };
   isDeleting: boolean;
   onConfirm: () => Promise<void> | void;
   onClose: () => void;
@@ -69,7 +76,7 @@ export default function SlideToDeleteModal({
   const getMaxDrag = useCallback(() => {
     if (!trackRef.current) return 0;
     const trackWidth = trackRef.current.clientWidth;
-    const thumbWidth = 52; // thumb size
+    const thumbWidth = 50; // thumb size
     return Math.max(0, trackWidth - thumbWidth - 8); // 8px total padding (4px each side)
   }, []);
 
@@ -77,6 +84,11 @@ export default function SlideToDeleteModal({
     if (isDeleting || isCompleted) return;
     setIsDragging(true);
     startXRef.current = clientX - currentDragRef.current;
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      try {
+        navigator.vibrate(15);
+      } catch {}
+    }
   };
 
   const handleMove = useCallback(
@@ -90,14 +102,14 @@ export default function SlideToDeleteModal({
       currentDragRef.current = clampedX;
       setDragX(clampedX);
 
-      // Check if threshold reached (88% of track)
-      if (clampedX >= maxDrag * 0.88) {
+      // Check if threshold reached (86% of track)
+      if (clampedX >= maxDrag * 0.86) {
         setIsDragging(false);
         setIsCompleted(true);
         setDragX(maxDrag);
         if (typeof navigator !== "undefined" && navigator.vibrate) {
           try {
-            navigator.vibrate(30);
+            navigator.vibrate(40);
           } catch {}
         }
         onConfirm();
@@ -111,7 +123,7 @@ export default function SlideToDeleteModal({
     setIsDragging(false);
     const maxDrag = getMaxDrag();
 
-    if (currentDragRef.current < maxDrag * 0.88) {
+    if (currentDragRef.current < maxDrag * 0.86) {
       // Spring back
       currentDragRef.current = 0;
       setDragX(0);
@@ -121,14 +133,6 @@ export default function SlideToDeleteModal({
   // Touch event listeners
   const onTouchStart = (e: React.TouchEvent) => {
     handleStart(e.touches[0].clientX);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    handleMove(e.touches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    handleEnd();
   };
 
   // Mouse event listeners for desktop drag
@@ -146,12 +150,23 @@ export default function SlideToDeleteModal({
     const onWindowMouseUp = () => {
       handleEnd();
     };
+    const onWindowTouchMove = (e: TouchEvent) => {
+      if (e.cancelable) e.preventDefault();
+      handleMove(e.touches[0].clientX);
+    };
+    const onWindowTouchEnd = () => {
+      handleEnd();
+    };
 
     window.addEventListener("mousemove", onWindowMouseMove);
     window.addEventListener("mouseup", onWindowMouseUp);
+    window.addEventListener("touchmove", onWindowTouchMove, { passive: false });
+    window.addEventListener("touchend", onWindowTouchEnd);
     return () => {
       window.removeEventListener("mousemove", onWindowMouseMove);
       window.removeEventListener("mouseup", onWindowMouseUp);
+      window.removeEventListener("touchmove", onWindowTouchMove);
+      window.removeEventListener("touchend", onWindowTouchEnd);
     };
   }, [isDragging, handleMove, handleEnd]);
 
@@ -309,27 +324,32 @@ export default function SlideToDeleteModal({
             className="slide-track"
             style={{
               position: "relative",
-              height: "60px",
+              height: "58px",
               borderRadius: "100px",
-              background: "#f1f3f5",
-              boxShadow: "inset 0 2px 6px rgba(0, 0, 0, 0.08)",
+              background: "rgba(0, 0, 0, 0.04)",
+              boxShadow: "inset 0 1.5px 4px rgba(0, 0, 0, 0.06)",
               border: "1px solid rgba(0, 0, 0, 0.08)",
               overflow: "hidden",
               userSelect: "none",
+              WebkitUserSelect: "none",
               touchAction: "none",
             }}
           >
-            {/* Fill progress background (vibrant red) */}
+            {/* Progress Capsule Fill (Inset pill perfectly hugging the circular thumb) */}
             <div
               style={{
                 position: "absolute",
-                top: 0,
-                bottom: 0,
-                left: 0,
-                width: `${dragX + 56}px`,
-                background: "linear-gradient(90deg, #ff453a 0%, #ff3b30 100%)",
+                top: "4px",
+                bottom: "4px",
+                left: "4px",
+                width: dragX > 0 ? `${dragX + 50}px` : "0px",
+                opacity: dragX > 0 ? 1 : 0,
                 borderRadius: "100px",
-                transition: isDragging ? "none" : "width 240ms cubic-bezier(0.16, 1, 0.3, 1)",
+                background: "linear-gradient(90deg, rgba(255, 59, 48, 0.14) 0%, rgba(255, 59, 48, 0.85) 100%)",
+                boxShadow: "0 0 12px rgba(255, 59, 48, 0.25)",
+                transition: isDragging ? "none" : "width 260ms cubic-bezier(0.2, 0.9, 0.3, 1), opacity 150ms ease",
+                pointerEvents: "none",
+                willChange: "width, opacity",
               }}
             />
 
@@ -341,9 +361,9 @@ export default function SlideToDeleteModal({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                paddingLeft: "42px",
+                paddingLeft: "36px",
                 pointerEvents: "none",
-                fontSize: "13.5px",
+                fontSize: "13px",
                 fontWeight: 700,
                 letterSpacing: "0.02em",
                 color: progress > 0.45 ? "#ffffff" : "#64748b",
@@ -361,29 +381,33 @@ export default function SlideToDeleteModal({
             {/* Draggable Slider Thumb / Knob */}
             <div
               onTouchStart={onTouchStart}
-              onTouchMove={onTouchMove}
-              onTouchEnd={onTouchEnd}
               onMouseDown={onMouseDown}
               style={{
                 position: "absolute",
                 top: "4px",
                 left: "4px",
-                transform: `translateX(${dragX}px)`,
-                transition: isDragging ? "none" : "transform 260ms cubic-bezier(0.16, 1, 0.3, 1)",
-                width: "52px",
-                height: "52px",
+                transform: `translateX(${dragX}px) scale(${isDragging ? 1.04 : 1})`,
+                transition: isDragging ? "none" : "transform 260ms cubic-bezier(0.2, 0.9, 0.3, 1), background-color 200ms ease, box-shadow 200ms ease",
+                width: "50px",
+                height: "50px",
                 borderRadius: "50%",
-                background: "#ffffff",
-                boxShadow: "0 3px 12px rgba(0, 0, 0, 0.22), 0 1px 3px rgba(0, 0, 0, 0.1)",
+                background: isDeleting || isCompleted ? "#ff3b30" : "#ffffff",
+                border: "0.5px solid rgba(0, 0, 0, 0.04)",
+                boxShadow: isDragging
+                  ? "0 8px 24px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.12)"
+                  : "0 3px 12px rgba(0, 0, 0, 0.14), 0 1px 3px rgba(0, 0, 0, 0.08)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                cursor: isDeleting || isCompleted ? "default" : "grab",
-                color: "#ff3b30",
+                cursor: isDeleting || isCompleted ? "default" : isDragging ? "grabbing" : "grab",
+                color: isDeleting || isCompleted ? "#ffffff" : "#ff3b30",
+                zIndex: 2,
+                willChange: "transform",
+                touchAction: "none",
               }}
             >
               {isDeleting || isCompleted ? (
-                <Loader2 size={22} className="animate-spin" color="#ff3b30" />
+                <Loader2 size={20} className="animate-spin" color="#ffffff" />
               ) : (
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Trash2 size={20} strokeWidth={2.4} />
