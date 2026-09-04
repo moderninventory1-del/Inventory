@@ -31,12 +31,14 @@ export default function AdminSidebar() {
     <aside
       style={{
         width: "240px",
+        height: "100%",
+        maxHeight: "100dvh",
         background: "var(--color-bg-secondary)",
         borderRight: "1px solid var(--color-border)",
         display: "flex",
         flexDirection: "column",
-        minHeight: "100dvh",
         flexShrink: 0,
+        overflowY: "auto",
       }}
     >
       {/* Logo */}
@@ -124,7 +126,16 @@ export default function AdminSidebar() {
 
       <style>{`
         @media (min-width: 768px) {
-          .admin-sidebar-desktop { display: block !important; }
+          .admin-sidebar-desktop {
+            display: block !important;
+            position: sticky !important;
+            top: 0 !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            align-self: flex-start !important;
+            flex-shrink: 0 !important;
+            z-index: 40 !important;
+          }
         }
       `}</style>
     </>

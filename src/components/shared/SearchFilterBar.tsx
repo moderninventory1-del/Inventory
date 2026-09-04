@@ -500,6 +500,14 @@ export default function SearchFilterBar({
         .filter-dropdowns-row::-webkit-scrollbar {
           display: none;
         }
+        @media (min-width: 768px) {
+          .filter-dropdowns-row {
+            overflow: visible !important;
+            overflow-x: visible !important;
+            overflow-y: visible !important;
+            flex-wrap: wrap !important;
+          }
+        }
         .filter-reset-pill:active {
           transform: scale(0.95) !important;
         }

@@ -2,7 +2,7 @@
 // src/components/shared/IOSDropdown.tsx
 // Premium iOS-inspired filter dropdown — Portal-rendered bottom sheet on mobile, smart-boundary popover on desktop
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, Check, Search, X } from "lucide-react";
 
@@ -36,16 +36,27 @@ export default function IOSDropdown({
   const [searchFilter, setSearchFilter] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [alignRight, setAlignRight] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [visualViewportHeight, setVisualViewportHeight] = useState<number | null>(null);
 
+  const [popoverCoords, setPopoverCoords] = useState<{
+    top?: number;
+    bottom?: number;
+    left?: number;
+    right?: number;
+    minWidth: number;
+    placement: "bottom" | "top";
+  }>({ minWidth: 220, placement: "bottom" });
+
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const desktopPopoverRef = useRef<HTMLDivElement | null>(null);
+  const desktopSearchInputRef = useRef<HTMLInputElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const mobileSearchFormRef = useRef<HTMLFormElement | null>(null);
 
   const handleDismissKeyboard = () => {
     searchInputRef.current?.blur();
+    desktopSearchInputRef.current?.blur();
     if (typeof document !== "undefined") {
       (document.activeElement as HTMLElement)?.blur?.();
     }
@@ -99,25 +110,67 @@ export default function IOSDropdown({
     };
   }, []);
 
-  // Lock body scroll when mobile sheet is open
-  useEffect(() => {
-    if (isOpen && isMobile) {
-      const original = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = original;
-      };
+  // Update desktop popover position
+  const updateCoords = useCallback(() => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const estimatedHeight = 300;
+    const placement: "bottom" | "top" =
+      spaceBelow < estimatedHeight && spaceAbove > spaceBelow ? "top" : "bottom";
+
+    const minWidth = Math.max(rect.width, 220);
+    const shouldAlignRight = rect.left + minWidth > window.innerWidth - 16;
+
+    if (shouldAlignRight) {
+      const right = Math.max(12, window.innerWidth - rect.right);
+      if (placement === "bottom") {
+        setPopoverCoords({
+          top: rect.bottom + 6,
+          right,
+          minWidth,
+          placement: "bottom",
+        });
+      } else {
+        setPopoverCoords({
+          bottom: window.innerHeight - rect.top + 6,
+          right,
+          minWidth,
+          placement: "top",
+        });
+      }
+    } else {
+      const left = Math.max(12, rect.left);
+      if (placement === "bottom") {
+        setPopoverCoords({
+          top: rect.bottom + 6,
+          left,
+          minWidth,
+          placement: "bottom",
+        });
+      } else {
+        setPopoverCoords({
+          bottom: window.innerHeight - rect.top + 6,
+          left,
+          minWidth,
+          placement: "top",
+        });
+      }
     }
-  }, [isOpen, isMobile]);
+  }, []);
 
   // Close desktop popover on outside click or Escape
   useEffect(() => {
     if (!isOpen || isMobile) return;
 
     const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as Node;
       if (
         containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
+        !containerRef.current.contains(target) &&
+        desktopPopoverRef.current &&
+        !desktopPopoverRef.current.contains(target)
       ) {
         setIsOpen(false);
       }
@@ -133,12 +186,36 @@ export default function IOSDropdown({
       document.removeEventListener("mousedown", handleOutsideClick);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, isMobile]);
+
+  // Track scroll and resize when desktop popover is open
+  useEffect(() => {
+    if (isOpen && !isMobile) {
+      updateCoords();
+      window.addEventListener("scroll", updateCoords, true);
+      window.addEventListener("resize", updateCoords);
+      return () => {
+        window.removeEventListener("scroll", updateCoords, true);
+        window.removeEventListener("resize", updateCoords);
+      };
+    }
+  }, [isOpen, isMobile, updateCoords]);
+
+  // Lock body scroll when mobile sheet is open
+  useEffect(() => {
+    if (isOpen && isMobile) {
+      const original = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = original;
+      };
+    }
+  }, [isOpen, isMobile]);
 
   // Focus search input when opened (desktop only to prevent unwanted auto-keyboard on mobile)
   useEffect(() => {
-    if (isOpen && !isMobile && searchInputRef.current) {
-      setTimeout(() => searchInputRef.current?.focus(), 80);
+    if (isOpen && !isMobile && desktopSearchInputRef.current) {
+      setTimeout(() => desktopSearchInputRef.current?.focus(), 80);
     } else if (!isOpen) {
       setSearchFilter("");
       setIsSearchFocused(false);
@@ -150,12 +227,10 @@ export default function IOSDropdown({
       e.preventDefault();
       e.stopPropagation();
     }
-    if (!isOpen && containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      // If trigger is within 260px of the right viewport edge, flip popover to align right
-      setAlignRight(rect.left + 260 > window.innerWidth);
+    const mobile = window.innerWidth < 768;
+    setIsMobile(mobile);
+    if (!mobile && !isOpen) {
+      updateCoords();
     }
     setIsOpen((prev) => !prev);
   };
@@ -230,25 +305,31 @@ export default function IOSDropdown({
         />
       </button>
 
-      {/* ── Desktop Floating Popover Menu (>= 768px) ── */}
-      {isOpen && !isMobile && (
+      {/* ── Desktop Floating Popover Menu (>= 768px via Portal) ── */}
+      {mounted && isOpen && !isMobile && createPortal(
         <div
+          ref={desktopPopoverRef}
           className="ios-desktop-popover card"
           style={{
-            position: "absolute",
-            top: "calc(100% + 8px)",
-            left: alignRight ? "auto" : 0,
-            right: alignRight ? 0 : "auto",
-            zIndex: 100,
-            minWidth: "220px",
+            position: "fixed",
+            top: popoverCoords.top !== undefined ? `${popoverCoords.top}px` : "auto",
+            bottom: popoverCoords.bottom !== undefined ? `${popoverCoords.bottom}px` : "auto",
+            left: popoverCoords.left !== undefined ? `${popoverCoords.left}px` : "auto",
+            right: popoverCoords.right !== undefined ? `${popoverCoords.right}px` : "auto",
+            zIndex: 99999,
+            minWidth: `${popoverCoords.minWidth}px`,
             maxWidth: "calc(100vw - 32px)",
             width: "max-content",
             background: "#ffffff",
             borderRadius: "var(--radius-md)",
             border: "1px solid var(--color-border)",
-            boxShadow: "0 12px 36px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04)",
+            boxShadow: "0 12px 36px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.04)",
             padding: "6px",
             animation: "ios-popover-in 160ms cubic-bezier(0.16, 1, 0.3, 1) forwards",
+            transformOrigin:
+              popoverCoords.placement === "top"
+                ? popoverCoords.right !== undefined ? "bottom right" : "bottom left"
+                : popoverCoords.right !== undefined ? "top right" : "top left",
           }}
           role="listbox"
         >
@@ -258,7 +339,7 @@ export default function IOSDropdown({
               <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
                 <Search size={14} style={{ position: "absolute", left: "10px", color: "var(--color-text-muted)", pointerEvents: "none" }} />
                 <input
-                  ref={searchInputRef}
+                  ref={desktopSearchInputRef}
                   type="search"
                   enterKeyHint="search"
                   value={searchFilter}
@@ -285,7 +366,7 @@ export default function IOSDropdown({
                     type="button"
                     onClick={() => {
                       setSearchFilter("");
-                      searchInputRef.current?.focus();
+                      desktopSearchInputRef.current?.focus();
                     }}
                     aria-label="Clear filter"
                     style={{
@@ -330,7 +411,7 @@ export default function IOSDropdown({
                   color: !selectedValue ? "var(--color-accent)" : "var(--color-text-primary)",
                   borderRadius: "8px",
                   fontSize: "13px",
-                  fontWeight: !selectedValue ? 600 : 400,
+                  fontWeight: !selectedValue ? 700 : 500,
                   cursor: "pointer",
                   textAlign: "left",
                   transition: "background 100ms ease",
@@ -360,7 +441,7 @@ export default function IOSDropdown({
                     color: isItemActive ? "var(--color-accent)" : "var(--color-text-primary)",
                     borderRadius: "8px",
                     fontSize: "13px",
-                    fontWeight: isItemActive ? 600 : 400,
+                    fontWeight: isItemActive ? 700 : 500,
                     cursor: "pointer",
                     textAlign: "left",
                     transition: "background 100ms ease",
@@ -380,7 +461,8 @@ export default function IOSDropdown({
               </p>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Mobile iOS Bottom Sheet Popup (< 768px via Portal) ── */}

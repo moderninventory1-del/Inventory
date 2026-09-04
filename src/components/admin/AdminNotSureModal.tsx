@@ -440,12 +440,10 @@ export default function AdminNotSureModal() {
       onClick={handleSnooze}
       style={{
         position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        width: "100vw",
-        height: "100vh",
+        inset: 0,
+        width: "100%",
+        height: "100dvh",
+        maxHeight: "100dvh",
         zIndex: 999999, // Above all navigation, headers, and dialogs
         backgroundColor: "rgba(0, 0, 0, 0.55)",
         backdropFilter: "blur(10px)",
@@ -461,20 +459,25 @@ export default function AdminNotSureModal() {
         onClick={(e) => e.stopPropagation()}
         style={{
           width: "100%",
-          maxWidth: "440px",
-          maxHeight: "94vh",
+          maxWidth: "460px",
+          maxHeight: "min(92dvh, calc(100dvh - 16px))",
           margin: "0 auto",
           backgroundColor: "#ffffff",
           borderTopLeftRadius: "28px",
           borderTopRightRadius: "28px",
           border: "1px solid rgba(0, 0, 0, 0.08)",
           borderBottom: "none",
-          padding: "10px 16px calc(14px + env(safe-area-inset-bottom, 14px))",
+          paddingTop: "12px",
+          paddingLeft: "16px",
+          paddingRight: "16px",
+          paddingBottom: "max(24px, calc(16px + env(safe-area-inset-bottom, 20px)))",
           boxShadow: "0 -16px 48px rgba(0, 0, 0, 0.22)",
           display: "flex",
           flexDirection: "column",
           position: "relative",
           animation: "ios-sheet-slide-up 320ms cubic-bezier(0.16, 1, 0.3, 1) forwards",
+          overflowY: "auto",
+          WebkitOverflowScrolling: "touch",
         }}
       >
         {/* iOS Grabber Pill */}
@@ -1134,34 +1137,38 @@ export default function AdminNotSureModal() {
           style={{
             display: "flex",
             alignItems: "center",
-            paddingTop: "8px",
-            borderTop: "1px solid rgba(0, 0, 0, 0.06)",
-            marginTop: "6px",
+            paddingTop: "12px",
+            paddingBottom: "4px",
+            borderTop: "1px solid rgba(0, 0, 0, 0.07)",
+            marginTop: "10px",
             flexShrink: 0,
           }}
         >
           <button
             type="button"
             onClick={handleSnooze}
+            className="snooze-action-btn"
             style={{
               width: "100%",
-              padding: "10px 14px",
+              padding: "12px 18px",
               borderRadius: "100px",
-              background: "rgba(0, 0, 0, 0.04)",
-              border: "1px solid rgba(0, 0, 0, 0.08)",
-              color: "var(--color-text-secondary)",
-              fontSize: "13px",
-              fontWeight: 600,
+              background: "#f1f5f9",
+              border: "1.5px solid #cbd5e1",
+              color: "var(--color-text-primary)",
+              fontSize: "13.5px",
+              fontWeight: 700,
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: "7px",
+              gap: "8px",
               cursor: "pointer",
-              transition: "background 140ms ease",
+              boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
+              transition: "all 140ms ease",
+              userSelect: "none",
             }}
             title="Snooze reminder for current session. Will alert you again on refresh or reopen."
           >
-            <Clock size={15} />
+            <Clock size={16} strokeWidth={2.2} />
             <span>Snooze for This Session</span>
           </button>
         </div>
@@ -1222,6 +1229,16 @@ export default function AdminNotSureModal() {
 
         .slider-shimmer-text {
           animation: text-shimmer 2s ease-in-out infinite;
+        }
+
+        .snooze-action-btn:hover {
+          background: #e2e8f0 !important;
+          border-color: #94a3b8 !important;
+          transform: translateY(-1px);
+        }
+
+        .snooze-action-btn:active {
+          transform: translateY(0);
         }
       `}</style>
     </div>
