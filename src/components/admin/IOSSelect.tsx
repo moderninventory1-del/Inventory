@@ -45,6 +45,7 @@ export default function IOSSelect({
   const [isOpen, setIsOpen] = useState(false);
   const [searchFilter, setSearchFilter] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isExpandedToTop, setIsExpandedToTop] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [visualViewportHeight, setVisualViewportHeight] = useState<number | null>(null);
@@ -216,6 +217,7 @@ export default function IOSSelect({
     } else if (!isOpen) {
       setSearchFilter("");
       setIsSearchFocused(false);
+      setIsExpandedToTop(false);
       handleDismissKeyboard();
     }
   }, [isOpen, isMobile, options.length, handleDismissKeyboard]);
@@ -227,6 +229,7 @@ export default function IOSSelect({
     if (isOpen) {
       handleDismissKeyboard();
       setIsSearchFocused(false);
+      setIsExpandedToTop(false);
     } else {
       updateCoords();
     }
@@ -236,6 +239,7 @@ export default function IOSSelect({
   const handleSelect = (val: string) => {
     handleDismissKeyboard();
     setIsSearchFocused(false);
+    setIsExpandedToTop(false);
     onChange(val);
     setIsOpen(false);
     if (typeof navigator !== "undefined" && navigator.vibrate) {
@@ -641,7 +645,8 @@ export default function IOSSelect({
               left: 0,
               right: 0,
               bottom: 0,
-              height: visualViewportHeight ? `${visualViewportHeight}px` : "100%",
+              width: "100%",
+              height: "100dvh",
               zIndex: 99999,
               background: "rgba(0, 0, 0, 0.5)",
               backdropFilter: "blur(6px)",
@@ -653,394 +658,376 @@ export default function IOSSelect({
             }}
             onClick={(e) => {
               if (e.target === e.currentTarget) {
-                if (isSearchFocused) {
-                  handleDismissKeyboard();
-                  setIsSearchFocused(false);
-                } else {
-                  setIsOpen(false);
-                }
+                handleDismissKeyboard();
+                setIsSearchFocused(false);
+                setIsExpandedToTop(false);
+                setIsOpen(false);
               }
             }}
           >
-            {(() => {
-              const isExpanded = isSearchFocused || Boolean(searchFilter.trim());
-              const sheetHeight =
-                options.length > 5
-                  ? isSearchFocused && visualViewportHeight
-                    ? `${Math.max(260, visualViewportHeight - 12)}px`
-                    : isExpanded
-                    ? "calc(100dvh - 16px)"
-                    : "70vh"
-                  : "auto";
+            <div
+              className="ios-mobile-sheet"
+              style={{
+                width: "100%",
+                maxWidth: "520px",
+                margin: "0 auto",
+                background: "#ffffff",
+                borderTopLeftRadius: "22px",
+                borderTopRightRadius: "22px",
+                padding: "16px 20px calc(24px + env(safe-area-inset-bottom, 16px))",
+                boxShadow: "0 -8px 36px rgba(0, 0, 0, 0.16)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "12px",
+                height: isExpandedToTop ? "calc(100dvh - 12px)" : options.length > 5 ? "72vh" : "auto",
+                maxHeight: isExpandedToTop ? "calc(100dvh - 12px)" : "84vh",
+                transition:
+                  "height 320ms cubic-bezier(0.16, 1, 0.3, 1), max-height 320ms cubic-bezier(0.16, 1, 0.3, 1)",
+                animation: "iosSelectSheetUp 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards",
+              }}
+              role="dialog"
+              aria-label={`Select ${label}`}
+            >
+              {/* Grabber Bar */}
+              <div
+                style={{
+                  width: "36px",
+                  height: "4px",
+                  borderRadius: "2px",
+                  background: "rgba(0, 0, 0, 0.2)",
+                  alignSelf: "center",
+                }}
+              />
 
-              const sheetMaxHeight =
-                options.length > 5
-                  ? isSearchFocused && visualViewportHeight
-                    ? `${Math.max(260, visualViewportHeight - 12)}px`
-                    : isExpanded
-                    ? "calc(100dvh - 16px)"
-                    : "84vh"
-                  : "84vh";
+              {/* Sheet Header */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  paddingBottom: "8px",
+                  borderBottom: "1px solid var(--color-border)",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  {icon && (
+                    <span style={{ color: "var(--color-accent)", display: "flex" }}>
+                      {icon}
+                    </span>
+                  )}
+                  <div>
+                    <h3
+                      style={{
+                        fontSize: "17.5px",
+                        fontWeight: 800,
+                        letterSpacing: "-0.025em",
+                        color: "var(--color-text-primary)",
+                        margin: 0,
+                      }}
+                    >
+                      Select {label}
+                    </h3>
+                    <p
+                      style={{
+                        fontSize: "12.5px",
+                        fontWeight: 500,
+                        color: "var(--color-text-muted)",
+                        margin: "2px 0 0 0",
+                      }}
+                    >
+                      Choose a {label.toLowerCase()} from the list
+                    </p>
+                  </div>
+                </div>
 
-              return (
-                <div
-                  className="ios-mobile-sheet"
-                  style={{
-                    width: "100%",
-                    maxWidth: "520px",
-                    margin: "0 auto",
-                    background: "#ffffff",
-                    borderTopLeftRadius: "22px",
-                    borderTopRightRadius: "22px",
-                    padding: isExpanded
-                      ? "14px 18px calc(14px + env(safe-area-inset-bottom, 12px))"
-                      : "16px 20px calc(24px + env(safe-area-inset-bottom, 16px))",
-                    boxShadow: "0 -8px 36px rgba(0, 0, 0, 0.16)",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "12px",
-                    height: sheetHeight,
-                    maxHeight: sheetMaxHeight,
-                    transition:
-                      "height 280ms cubic-bezier(0.16, 1, 0.3, 1), max-height 280ms cubic-bezier(0.16, 1, 0.3, 1), padding 200ms ease",
-                    animation: "iosSelectSheetUp 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards",
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleDismissKeyboard();
+                    setIsSearchFocused(false);
+                    setIsExpandedToTop(false);
+                    setIsOpen(false);
                   }}
-                  role="dialog"
-                  aria-label={`Select ${label}`}
+                  style={{
+                    background: "rgba(0, 0, 0, 0.06)",
+                    border: "none",
+                    borderRadius: "50%",
+                    width: "30px",
+                    height: "30px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    color: "var(--color-text-secondary)",
+                  }}
+                  aria-label="Close"
                 >
-                  {/* Grabber Bar */}
-                  <div
-                    style={{
-                      width: "36px",
-                      height: "4px",
-                      borderRadius: "2px",
-                      background: "rgba(0, 0, 0, 0.2)",
-                      alignSelf: "center",
-                    }}
-                  />
+                  <X size={16} />
+                </button>
+              </div>
 
-                  {/* Sheet Header */}
+              {/* Search filter input inside sheet if > 5 options */}
+              {options.length > 5 && (
+                <form
+                  ref={mobileSearchFormRef}
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleDismissKeyboard();
+                    setIsSearchFocused(false);
+                  }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    width: "100%",
+                  }}
+                >
                   <div
                     style={{
+                      position: "relative",
+                      flex: 1,
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "space-between",
-                      paddingBottom: "8px",
-                      borderBottom: "1px solid var(--color-border)",
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      {icon && (
-                        <span style={{ color: "var(--color-accent)", display: "flex" }}>
-                          {icon}
-                        </span>
-                      )}
-                      <div>
-                        <h3
-                          style={{
-                            fontSize: "17.5px",
-                            fontWeight: 800,
-                            letterSpacing: "-0.025em",
-                            color: "var(--color-text-primary)",
-                            margin: 0,
-                          }}
-                        >
-                          Select {label}
-                        </h3>
-                        <p
-                          style={{
-                            fontSize: "12.5px",
-                            fontWeight: 500,
-                            color: "var(--color-text-muted)",
-                            margin: "2px 0 0 0",
-                          }}
-                        >
-                          Choose a {label.toLowerCase()} from the list
-                        </p>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
+                    <Search
+                      size={16}
+                      style={{
+                        position: "absolute",
+                        left: "12px",
+                        color: isSearchFocused
+                          ? "var(--color-accent)"
+                          : "var(--color-text-muted)",
+                        pointerEvents: "none",
+                        transition: "color 150ms ease",
+                      }}
+                    />
+                    <input
+                      ref={mobileSearchInputRef}
+                      type="search"
+                      enterKeyHint="search"
+                      inputMode="search"
+                      value={searchFilter}
+                      onFocus={() => {
+                        setIsSearchFocused(true);
+                        setIsExpandedToTop(true);
+                      }}
                       onClick={() => {
-                        handleDismissKeyboard();
-                        setIsSearchFocused(false);
-                        setIsOpen(false);
+                        setIsExpandedToTop(true);
                       }}
-                      style={{
-                        background: "rgba(0, 0, 0, 0.06)",
-                        border: "none",
-                        borderRadius: "50%",
-                        width: "30px",
-                        height: "30px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                        color: "var(--color-text-secondary)",
-                      }}
-                      aria-label="Close"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-
-                  {/* Search filter input inside sheet if > 5 options */}
-                  {options.length > 5 && (
-                    <form
-                      ref={mobileSearchFormRef}
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        handleDismissKeyboard();
-                        setIsSearchFocused(false);
-                      }}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        width: "100%",
-                      }}
-                    >
-                      <div
-                        style={{
-                          position: "relative",
-                          flex: 1,
-                          display: "flex",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Search
-                          size={16}
-                          style={{
-                            position: "absolute",
-                            left: "12px",
-                            color: isSearchFocused
-                              ? "var(--color-accent)"
-                              : "var(--color-text-muted)",
-                            pointerEvents: "none",
-                            transition: "color 150ms ease",
-                          }}
-                        />
-                        <input
-                          ref={mobileSearchInputRef}
-                          type="search"
-                          enterKeyHint="search"
-                          inputMode="search"
-                          value={searchFilter}
-                          onFocus={() => setIsSearchFocused(true)}
-                          onBlur={() => setIsSearchFocused(false)}
-                          onChange={(e) => setSearchFilter(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              handleDismissKeyboard();
-                              setIsSearchFocused(false);
-                            }
-                          }}
-                          placeholder={`Search ${label.toLowerCase()}s…`}
-                          style={{
-                            width: "100%",
-                            height: "42px",
-                            padding: searchFilter ? "8px 36px 8px 38px" : "8px 12px 8px 38px",
-                            borderRadius: "12px",
-                            border: isSearchFocused
-                              ? "1.5px solid var(--color-accent)"
-                              : "1px solid var(--color-border)",
-                            fontSize: "15px",
-                            background: isSearchFocused ? "#ffffff" : "var(--color-bg-surface)",
-                            outline: "none",
-                            boxShadow: isSearchFocused
-                              ? "0 0 0 3px rgba(0, 113, 227, 0.12)"
-                              : "none",
-                            transition: "all 180ms ease",
-                            WebkitAppearance: "none",
-                          }}
-                        />
-                        {Boolean(searchFilter) && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSearchFilter("");
-                              mobileSearchInputRef.current?.focus();
-                            }}
-                            aria-label="Clear search"
-                            style={{
-                              position: "absolute",
-                              right: "10px",
-                              background: "rgba(0, 0, 0, 0.14)",
-                              border: "none",
-                              borderRadius: "50%",
-                              width: "20px",
-                              height: "20px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              cursor: "pointer",
-                              color: "#ffffff",
-                              padding: 0,
-                            }}
-                          >
-                            <X size={12} strokeWidth={2.5} />
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Search / Done button that closes the keyboard */}
-                      <button
-                        type="submit"
-                        onClick={() => {
+                      onBlur={() => setIsSearchFocused(false)}
+                      onChange={(e) => setSearchFilter(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
                           handleDismissKeyboard();
                           setIsSearchFocused(false);
-                        }}
-                        onMouseDown={(e) => e.preventDefault()}
-                        aria-label="Search and close keyboard"
-                        style={{
-                          height: "42px",
-                          padding: "0 14px",
-                          borderRadius: "12px",
-                          background: "var(--color-accent)",
-                          color: "#ffffff",
-                          border: "none",
-                          fontSize: "13px",
-                          fontWeight: 700,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "5px",
-                          cursor: "pointer",
-                          flexShrink: 0,
-                          boxShadow: "0 2px 8px rgba(0, 113, 227, 0.22)",
-                          transition: "transform 100ms ease, opacity 100ms ease",
-                        }}
-                      >
-                        <Search size={14} strokeWidth={2.5} />
-                        <span>Search</span>
-                      </button>
-                    </form>
-                  )}
-
-                  {/* Mobile Options List — scrolling dismisses keyboard */}
-                  <div
-                    onScroll={() => {
-                      if (isSearchFocused) {
-                        handleDismissKeyboard();
-                        setIsSearchFocused(false);
-                      }
-                    }}
-                    style={{
-                      overflowY: "auto",
-                      WebkitOverflowScrolling: "touch",
-                      flex: options.length > 5 ? 1 : "initial",
-                      minHeight: options.length > 5 ? "120px" : "auto",
-                      maxHeight: options.length > 5 ? "none" : "52vh",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "4px",
-                      padding: "4px 0",
-                    }}
-                  >
-                    {filteredOptions.length === 0 ? (
-                      <div
-                        style={{
-                          padding: "32px 16px",
-                          textAlign: "center",
-                          color: "var(--color-text-muted)",
-                          fontSize: "14px",
-                        }}
-                      >
-                        No {label.toLowerCase()} found
-                      </div>
-                    ) : (
-                      <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                        {filteredOptions.map((opt) => {
-                          const isItemActive = value === opt.value;
-                          return (
-                            <button
-                              key={opt.value}
-                              type="button"
-                              onClick={() => handleSelect(opt.value)}
-                              className="ios-select-item"
-                              style={{
-                                width: "100%",
-                                minHeight: "46px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                padding: "10px 14px",
-                                borderRadius: "12px",
-                                border: "none",
-                                background: isItemActive
-                                  ? "rgba(0, 113, 227, 0.09)"
-                                  : "transparent",
-                                color: isItemActive
-                                  ? "var(--color-accent)"
-                                  : "var(--color-text-primary)",
-                                fontSize: "15px",
-                                fontWeight: isItemActive ? 600 : 400,
-                                textAlign: "left",
-                                cursor: "pointer",
-                                transition: "all 120ms ease",
-                              }}
-                            >
-                              <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                                <span>{opt.label}</span>
-                                {opt.subtitle && (
-                                  <span
-                                    style={{
-                                      fontSize: "12px",
-                                      color: "var(--color-text-muted)",
-                                      fontWeight: 400,
-                                    }}
-                                  >
-                                    {opt.subtitle}
-                                  </span>
-                                )}
-                              </div>
-                              {isItemActive && (
-                                <Check size={18} color="var(--color-accent)" strokeWidth={2.5} />
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Mobile "+ Add New" button */}
-                  {onAddNew && (
-                    <div style={{ padding: "4px 0 0" }}>
+                        }
+                      }}
+                      placeholder={`Search ${label.toLowerCase()}s…`}
+                      style={{
+                        width: "100%",
+                        height: "42px",
+                        padding: searchFilter ? "8px 36px 8px 38px" : "8px 12px 8px 38px",
+                        borderRadius: "12px",
+                        border: isSearchFocused
+                          ? "1.5px solid var(--color-accent)"
+                          : "1px solid var(--color-border)",
+                        fontSize: "15px",
+                        background: isSearchFocused ? "#ffffff" : "var(--color-bg-surface)",
+                        outline: "none",
+                        boxShadow: isSearchFocused
+                          ? "0 0 0 3px rgba(0, 113, 227, 0.12)"
+                          : "none",
+                        transition: "all 180ms ease",
+                        WebkitAppearance: "none",
+                      }}
+                    />
+                    {Boolean(searchFilter) && (
                       <button
                         type="button"
                         onClick={() => {
-                          handleDismissKeyboard();
-                          setIsSearchFocused(false);
-                          setIsOpen(false);
-                          onAddNew();
+                          setSearchFilter("");
+                          mobileSearchInputRef.current?.focus();
                         }}
-                        className="btn-secondary"
+                        aria-label="Clear search"
                         style={{
-                          width: "100%",
+                          position: "absolute",
+                          right: "10px",
+                          background: "rgba(0, 0, 0, 0.14)",
+                          border: "none",
+                          borderRadius: "50%",
+                          width: "20px",
+                          height: "20px",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          gap: "8px",
-                          padding: "12px",
-                          borderRadius: "12px",
-                          fontSize: "14px",
-                          fontWeight: 600,
-                          color: "var(--color-accent)",
-                          background: "rgba(0, 113, 227, 0.06)",
-                          border: "1px dashed rgba(0, 113, 227, 0.3)",
                           cursor: "pointer",
+                          color: "#ffffff",
+                          padding: 0,
                         }}
                       >
-                        <Plus size={16} strokeWidth={2.5} />
-                        <span>{addNewLabel}</span>
+                        <X size={12} strokeWidth={2.5} />
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
+
+                  {/* Search / Done button that closes the keyboard */}
+                  <button
+                    type="submit"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDismissKeyboard();
+                      setIsSearchFocused(false);
+                    }}
+                    onMouseDown={(e) => e.preventDefault()}
+                    aria-label="Search and close keyboard"
+                    style={{
+                      height: "42px",
+                      padding: "0 12px",
+                      borderRadius: "12px",
+                      background: "var(--color-accent)",
+                      color: "#ffffff",
+                      border: "none",
+                      fontSize: "13px",
+                      fontWeight: 700,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      cursor: "pointer",
+                      flexShrink: 0,
+                      boxShadow: "0 2px 8px rgba(0, 113, 227, 0.22)",
+                      transition: "transform 100ms ease, opacity 100ms ease",
+                    }}
+                  >
+                    <Search size={14} strokeWidth={2.5} />
+                    <span>Search</span>
+                  </button>
+                </form>
+              )}
+
+              {/* Mobile Options List — scrolling dismisses keyboard */}
+              <div
+                onScroll={() => {
+                  if (isSearchFocused) {
+                    handleDismissKeyboard();
+                    setIsSearchFocused(false);
+                  }
+                }}
+                style={{
+                  overflowY: "auto",
+                  WebkitOverflowScrolling: "touch",
+                  flex: options.length > 5 ? 1 : "initial",
+                  minHeight: options.length > 5 ? "120px" : "auto",
+                  maxHeight: options.length > 5 ? "none" : "52vh",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "4px",
+                  padding: "4px 0",
+                }}
+              >
+                {filteredOptions.length === 0 ? (
+                  <div
+                    style={{
+                      padding: "32px 16px",
+                      textAlign: "center",
+                      color: "var(--color-text-muted)",
+                      fontSize: "14px",
+                    }}
+                  >
+                    No {label.toLowerCase()} found
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    {filteredOptions.map((opt) => {
+                      const isItemActive = value === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => handleSelect(opt.value)}
+                          className="ios-select-item"
+                          style={{
+                            width: "100%",
+                            minHeight: "46px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            padding: "10px 14px",
+                            borderRadius: "12px",
+                            border: "none",
+                            background: isItemActive
+                              ? "rgba(0, 113, 227, 0.09)"
+                              : "transparent",
+                            color: isItemActive
+                              ? "var(--color-accent)"
+                              : "var(--color-text-primary)",
+                            fontSize: "15px",
+                            fontWeight: isItemActive ? 600 : 400,
+                            textAlign: "left",
+                            cursor: "pointer",
+                            transition: "all 120ms ease",
+                          }}
+                        >
+                          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                            <span>{opt.label}</span>
+                            {opt.subtitle && (
+                              <span
+                                style={{
+                                  fontSize: "12px",
+                                  color: "var(--color-text-muted)",
+                                  fontWeight: 400,
+                                }}
+                              >
+                                {opt.subtitle}
+                              </span>
+                            )}
+                          </div>
+                          {isItemActive && (
+                            <Check size={18} color="var(--color-accent)" strokeWidth={2.5} />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile "+ Add New" button */}
+              {onAddNew && (
+                <div style={{ padding: "4px 0 0" }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleDismissKeyboard();
+                      setIsSearchFocused(false);
+                      setIsExpandedToTop(false);
+                      setIsOpen(false);
+                      onAddNew();
+                    }}
+                    className="btn-secondary"
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                      padding: "12px",
+                      borderRadius: "12px",
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      color: "var(--color-accent)",
+                      background: "rgba(0, 113, 227, 0.06)",
+                      border: "1px dashed rgba(0, 113, 227, 0.3)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <Plus size={16} strokeWidth={2.5} />
+                    <span>{addNewLabel}</span>
+                  </button>
                 </div>
-              );
-            })()}
+              )}
+            </div>
           </div>,
           document.body
         )}

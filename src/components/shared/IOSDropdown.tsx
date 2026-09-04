@@ -35,6 +35,7 @@ export default function IOSDropdown({
   const [isOpen, setIsOpen] = useState(false);
   const [searchFilter, setSearchFilter] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isExpandedToTop, setIsExpandedToTop] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [visualViewportHeight, setVisualViewportHeight] = useState<number | null>(null);
@@ -219,6 +220,7 @@ export default function IOSDropdown({
     } else if (!isOpen) {
       setSearchFilter("");
       setIsSearchFocused(false);
+      setIsExpandedToTop(false);
     }
   }, [isOpen, isMobile]);
 
@@ -231,6 +233,9 @@ export default function IOSDropdown({
     setIsMobile(mobile);
     if (!mobile && !isOpen) {
       updateCoords();
+    }
+    if (isOpen) {
+      setIsExpandedToTop(false);
     }
     setIsOpen((prev) => !prev);
   };
@@ -250,6 +255,7 @@ export default function IOSDropdown({
 
   const handleSelect = (val: string) => {
     handleDismissKeyboard();
+    setIsExpandedToTop(false);
     onChange(val);
     setIsOpen(false);
   };
@@ -467,7 +473,6 @@ export default function IOSDropdown({
 
       {/* ── Mobile iOS Bottom Sheet Popup (< 768px via Portal) ── */}
       {isOpen && isMobile && mounted && (() => {
-        const isExpanded = isSearchFocused || Boolean(searchFilter.trim());
         return createPortal(
           <div
             style={{
@@ -476,8 +481,9 @@ export default function IOSDropdown({
               left: 0,
               right: 0,
               bottom: 0,
-              height: visualViewportHeight ? `${visualViewportHeight}px` : "100%",
-              zIndex: 9999,
+              width: "100%",
+              height: "100dvh",
+              zIndex: 99999,
               background: "rgba(0, 0, 0, 0.5)",
               backdropFilter: "blur(6px)",
               WebkitBackdropFilter: "blur(6px)",
@@ -488,11 +494,9 @@ export default function IOSDropdown({
             }}
             onClick={(e) => {
               if (e.target === e.currentTarget) {
-                if (isSearchFocused) {
-                  handleDismissKeyboard();
-                } else {
-                  setIsOpen(false);
-                }
+                handleDismissKeyboard();
+                setIsExpandedToTop(false);
+                setIsOpen(false);
               }
             }}
           >
@@ -505,31 +509,15 @@ export default function IOSDropdown({
                 background: "#ffffff",
                 borderTopLeftRadius: "22px",
                 borderTopRightRadius: "22px",
-                padding: isExpanded
-                  ? "14px 18px calc(14px + env(safe-area-inset-bottom, 12px))"
-                  : "16px 20px calc(24px + env(safe-area-inset-bottom, 16px))",
+                padding: "16px 20px calc(24px + env(safe-area-inset-bottom, 16px))",
                 boxShadow: "0 -8px 36px rgba(0, 0, 0, 0.16)",
                 display: "flex",
                 flexDirection: "column",
                 gap: "12px",
-                height:
-                  options.length > 5
-                    ? isSearchFocused && visualViewportHeight
-                      ? `${Math.max(260, visualViewportHeight - 12)}px`
-                      : isExpanded
-                      ? "calc(100dvh - 16px)"
-                      : "70vh"
-                    : "auto",
-                maxHeight:
-                  options.length > 5
-                    ? isSearchFocused && visualViewportHeight
-                      ? `${Math.max(260, visualViewportHeight - 12)}px`
-                      : isExpanded
-                      ? "calc(100dvh - 16px)"
-                      : "84vh"
-                    : "84vh",
+                height: isExpandedToTop ? "calc(100dvh - 12px)" : options.length > 5 ? "72vh" : "auto",
+                maxHeight: isExpandedToTop ? "calc(100dvh - 12px)" : "84vh",
                 transition:
-                  "height 280ms cubic-bezier(0.16, 1, 0.3, 1), max-height 280ms cubic-bezier(0.16, 1, 0.3, 1), padding 200ms ease",
+                  "height 320ms cubic-bezier(0.16, 1, 0.3, 1), max-height 320ms cubic-bezier(0.16, 1, 0.3, 1)",
                 animation: "ios-sheet-up 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards",
               }}
               role="dialog"
@@ -569,6 +557,7 @@ export default function IOSDropdown({
                   type="button"
                   onClick={() => {
                     handleDismissKeyboard();
+                    setIsExpandedToTop(false);
                     setIsOpen(false);
                   }}
                   style={{
@@ -628,7 +617,13 @@ export default function IOSDropdown({
                       enterKeyHint="search"
                       inputMode="search"
                       value={searchFilter}
-                      onFocus={() => setIsSearchFocused(true)}
+                      onFocus={() => {
+                        setIsSearchFocused(true);
+                        setIsExpandedToTop(true);
+                      }}
+                      onClick={() => {
+                        setIsExpandedToTop(true);
+                      }}
                       onBlur={() => setIsSearchFocused(false)}
                       onChange={(e) => setSearchFilter(e.target.value)}
                       onKeyDown={(e) => {
@@ -683,7 +678,7 @@ export default function IOSDropdown({
                     )}
                   </div>
 
-                  {/* Clickable Search button to dismiss keyboard and show results */}
+                  {/* Search button to drop keyboard */}
                   <button
                     type="submit"
                     onClick={(e) => {
@@ -694,7 +689,7 @@ export default function IOSDropdown({
                     aria-label="Search and close keyboard"
                     style={{
                       height: "42px",
-                      padding: "0 14px",
+                      padding: "0 12px",
                       borderRadius: "12px",
                       background: "var(--color-accent)",
                       color: "#ffffff",
@@ -703,7 +698,7 @@ export default function IOSDropdown({
                       fontWeight: 700,
                       display: "inline-flex",
                       alignItems: "center",
-                      gap: "5px",
+                      gap: "4px",
                       cursor: "pointer",
                       flexShrink: 0,
                       boxShadow: "0 2px 8px rgba(0, 113, 227, 0.22)",
@@ -727,7 +722,7 @@ export default function IOSDropdown({
                 style={{
                   overflowY: "auto",
                   WebkitOverflowScrolling: "touch",
-                  flex: options.length > 5 ? 1 : "initial",
+                  flex: 1,
                   minHeight: options.length > 5 ? "120px" : "auto",
                   maxHeight: options.length > 5 ? "none" : "52vh",
                   display: "flex",
@@ -736,39 +731,11 @@ export default function IOSDropdown({
                   padding: "4px 0",
                 }}
               >
-              {/* Reset to All */}
-              {!hideAllOption && (!searchFilter || defaultAll.toLowerCase().includes(searchFilter.toLowerCase().trim())) && (
-                <button
-                  type="button"
-                  onClick={() => handleSelect("")}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "13px 16px",
-                    borderRadius: "12px",
-                    border: "none",
-                    background: !selectedValue ? "rgba(0, 113, 227, 0.08)" : "transparent",
-                    color: !selectedValue ? "var(--color-accent)" : "var(--color-text-primary)",
-                    fontSize: "15px",
-                    fontWeight: !selectedValue ? 700 : 500,
-                    textAlign: "left",
-                    cursor: "pointer",
-                    transition: "background 120ms ease",
-                  }}
-                >
-                  <span>{defaultAll}</span>
-                  {!selectedValue && <Check size={18} color="var(--color-accent)" />}
-                </button>
-              )}
-
-              {filteredOptions.map((opt) => {
-                const isItemActive = selectedValue === opt.value;
-                return (
+                {/* Reset to All */}
+                {!hideAllOption && (!searchFilter || defaultAll.toLowerCase().includes(searchFilter.toLowerCase().trim())) && (
                   <button
-                    key={opt.value}
                     type="button"
-                    onClick={() => handleSelect(opt.value)}
+                    onClick={() => handleSelect("")}
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -776,32 +743,60 @@ export default function IOSDropdown({
                       padding: "13px 16px",
                       borderRadius: "12px",
                       border: "none",
-                      background: isItemActive ? "rgba(0, 113, 227, 0.08)" : "transparent",
-                      color: isItemActive ? "var(--color-accent)" : "var(--color-text-primary)",
+                      background: !selectedValue ? "rgba(0, 113, 227, 0.08)" : "transparent",
+                      color: !selectedValue ? "var(--color-accent)" : "var(--color-text-primary)",
                       fontSize: "15px",
-                      fontWeight: isItemActive ? 700 : 500,
+                      fontWeight: !selectedValue ? 700 : 500,
                       textAlign: "left",
                       cursor: "pointer",
                       transition: "background 120ms ease",
                     }}
                   >
-                    <span>{opt.label}</span>
-                    {isItemActive && <Check size={18} color="var(--color-accent)" />}
+                    <span>{defaultAll}</span>
+                    {!selectedValue && <Check size={18} color="var(--color-accent)" />}
                   </button>
-                );
-              })}
+                )}
 
-              {filteredOptions.length === 0 && (
-                <div style={{ textAlign: "center", padding: "24px 0", color: "var(--color-text-muted)", fontSize: "14px" }}>
-                  No {label.toLowerCase()} found
-                </div>
-              )}
+                {filteredOptions.map((opt) => {
+                  const isItemActive = selectedValue === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => handleSelect(opt.value)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "13px 16px",
+                        borderRadius: "12px",
+                        border: "none",
+                        background: isItemActive ? "rgba(0, 113, 227, 0.08)" : "transparent",
+                        color: isItemActive ? "var(--color-accent)" : "var(--color-text-primary)",
+                        fontSize: "15px",
+                        fontWeight: isItemActive ? 700 : 500,
+                        textAlign: "left",
+                        cursor: "pointer",
+                        transition: "background 120ms ease",
+                      }}
+                    >
+                      <span>{opt.label}</span>
+                      {isItemActive && <Check size={18} color="var(--color-accent)" />}
+                    </button>
+                  );
+                })}
+
+                {filteredOptions.length === 0 && (
+                  <div style={{ textAlign: "center", padding: "36px 0", color: "var(--color-text-muted)", fontSize: "14px" }}>
+                    No {label.toLowerCase()} found
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </div>,
-        document.body
-      );
-    })()}
+          </div>,
+          document.body
+        );
+      })()}
 
       <style>{`
         .ios-dropdown-trigger:active {
