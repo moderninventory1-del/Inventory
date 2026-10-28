@@ -5,11 +5,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-<<<<<<< HEAD
 import { Loader2, Save, Tv2, Tag, Plus, Package, RotateCcw } from "lucide-react";
-=======
-import { Loader2, Save, Tv2, Tag, Plus, Package } from "lucide-react";
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 import ImageUpload from "./ImageUpload";
 import IOSSelect from "./IOSSelect";
 import { DEFAULT_CATEGORIES } from "@/types";
@@ -24,10 +20,7 @@ interface InventoryFormProps {
   brands: { id: string; name: string }[];
   categories?: { id: string; name: string }[];
   action: (formData: FormData) => Promise<ActionResult | void>;
-<<<<<<< HEAD
   isRestoring?: boolean;
-=======
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 }
 
 export default function InventoryForm({
@@ -35,10 +28,7 @@ export default function InventoryForm({
   brands: initialBrands,
   categories: initialCategories,
   action,
-<<<<<<< HEAD
   isRestoring = false,
-=======
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 }: InventoryFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -195,16 +185,11 @@ export default function InventoryForm({
     }
   }
 
-<<<<<<< HEAD
   const isDeletedOrRestoring = Boolean(isRestoring || item?.isDeleted);
 
   return (
     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
       <input type="hidden" name="restore" value={isDeletedOrRestoring ? "true" : "false"} />
-=======
-  return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
       {/* Basic Info */}
       <section className="card" style={{ padding: "24px" }}>
         <h2 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "20px", color: "var(--color-text-primary)", letterSpacing: "-0.015em" }}>
@@ -492,7 +477,6 @@ export default function InventoryForm({
           type="submit"
           className="btn-primary form-submit-btn"
           disabled={isSubmitting}
-<<<<<<< HEAD
           style={
             isDeletedOrRestoring
               ? {
@@ -501,13 +485,10 @@ export default function InventoryForm({
                 }
               : undefined
           }
-=======
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
         >
           {isSubmitting ? (
             <>
               <Loader2 size={15} className="animate-spin" />
-<<<<<<< HEAD
               {isDeletedOrRestoring
                 ? "Restoring…"
                 : isEditing
@@ -527,14 +508,6 @@ export default function InventoryForm({
                   <span>{isEditing ? "Save Changes" : "Add Item"}</span>
                 </>
               )}
-=======
-              {isEditing ? "Saving…" : "Adding…"}
-            </>
-          ) : (
-            <>
-              <Save size={15} />
-              {isEditing ? "Save Changes" : "Add Item"}
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
             </>
           )}
         </button>

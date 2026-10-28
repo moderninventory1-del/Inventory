@@ -9,10 +9,7 @@ import Image from "next/image";
 import { RotateCcw, ChevronRight, Loader2, Package, CheckCircle2 } from "lucide-react";
 import { restoreInventoryItem } from "@/app/actions/inventory";
 import { clearAllInventoryCaches } from "@/lib/scroll-cache";
-<<<<<<< HEAD
 import { getOptimizedImageUrl } from "@/lib/utils";
-=======
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 import toast from "react-hot-toast";
 
 interface SlideToRestoreModalProps {
@@ -106,7 +103,6 @@ export default function SlideToRestoreModal({
     }
 
     try {
-<<<<<<< HEAD
       toast.success(`Opening edit page for ${item.brand.name} ${item.modelNumber}…`, {
         icon: "📝",
         duration: 2500,
@@ -117,31 +113,6 @@ export default function SlideToRestoreModal({
       }, 350);
     } catch {
       toast.error("Failed to open edit page. Please try again.");
-=======
-      const result = await restoreInventoryItem(item.id);
-      if (result.success) {
-        clearAllInventoryCaches();
-        toast.success(`Restored ${item.brand.name} ${item.modelNumber}! Opening edit page…`, {
-          icon: "✅",
-          duration: 3500,
-        });
-        setTimeout(() => {
-          onClose();
-          try {
-            router.refresh();
-          } catch {}
-          window.location.href = `/admin/inventory/${item.id}/edit`;
-        }, 350);
-      } else {
-        toast.error(result.error || "Failed to restore item");
-        setDragX(0);
-        currentDragRef.current = 0;
-        setIsRestoring(false);
-        setIsCompleted(false);
-      }
-    } catch {
-      toast.error("Failed to restore item. Please try again.");
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
       setDragX(0);
       currentDragRef.current = 0;
       setIsRestoring(false);
@@ -328,11 +299,7 @@ export default function SlideToRestoreModal({
               lineHeight: 1.4,
             }}
           >
-<<<<<<< HEAD
             Slide below to open edit page and continue restore
-=======
-            Slide below to restore and open edit page
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
           </p>
         </div>
 
@@ -363,18 +330,11 @@ export default function SlideToRestoreModal({
               }}
             >
               <Image
-<<<<<<< HEAD
                 src={getOptimizedImageUrl(item.frontImage, { width: 120, height: 120, crop: "fill", quality: "auto:eco" })}
                 alt={item.modelNumber}
                 fill
                 sizes="48px"
                 unoptimized
-=======
-                src={item.frontImage}
-                alt={item.modelNumber}
-                fill
-                sizes="48px"
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
                 style={{ objectFit: "contain", padding: "2px" }}
               />
             </div>

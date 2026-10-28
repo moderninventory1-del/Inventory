@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 
 interface PageProps {
   params: Promise<{ id: string }>;
-<<<<<<< HEAD
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
@@ -22,11 +21,4 @@ export default async function AdminItemEditRedirectPage({ params, searchParams }
   }
   const queryString = query.toString();
   redirect(`/admin/inventory/${id}/edit${queryString ? `?${queryString}` : ""}`);
-=======
-}
-
-export default async function AdminItemEditRedirectPage({ params }: PageProps) {
-  const { id } = await params;
-  redirect(`/admin/inventory/${id}/edit`);
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 }

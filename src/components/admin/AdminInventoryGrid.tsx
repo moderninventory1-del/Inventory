@@ -261,16 +261,12 @@ export default function AdminInventoryGrid({
             className="animate-fade-in"
             style={{ animationDelay: `${Math.min(i % 15, 6) * 40}ms` }}
           >
-<<<<<<< HEAD
             <AdminItemCard
               item={item}
               showDeleted={showDeleted}
               onDelete={handleItemDeleted}
               priority={i < 4}
             />
-=======
-            <AdminItemCard item={item} showDeleted={showDeleted} onDelete={handleItemDeleted} />
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
           </div>
         ))}
 

@@ -200,14 +200,8 @@ export default function AdminItemDetailHeader({ item }: AdminItemDetailHeaderPro
               <span className="admin-header-label-desktop">Delete</span>
             </button>
           ) : (
-<<<<<<< HEAD
             <Link
               href={`/admin/inventory/${item.id}/edit?restore=true`}
-=======
-            <button
-              type="button"
-              onClick={() => setIsRestoreModalOpen(true)}
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -222,7 +216,6 @@ export default function AdminItemDetailHeader({ item }: AdminItemDetailHeaderPro
                 cursor: "pointer",
                 boxShadow: "0 1px 3px rgba(34, 197, 94, 0.08)",
                 transition: "all 150ms ease",
-<<<<<<< HEAD
                 textDecoration: "none",
               }}
               title="Review and restore this item to active inventory"
@@ -230,14 +223,6 @@ export default function AdminItemDetailHeader({ item }: AdminItemDetailHeaderPro
               <RotateCcw size={14} strokeWidth={2.2} />
               <span className="admin-header-label-desktop">Restore</span>
             </Link>
-=======
-              }}
-              title="Restore this item to active inventory"
-            >
-              <RotateCcw size={14} strokeWidth={2.2} />
-              <span className="admin-header-label-desktop">Restore</span>
-            </button>
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
           )}
 
           {/* Edit Button (Always on the Right) */}

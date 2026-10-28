@@ -58,7 +58,6 @@ export function getCloudinaryPublicId(url: string): string {
   return match ? match[1] : url;
 }
 
-<<<<<<< HEAD
 export interface CloudinaryOptimizeOptions {
   width?: number;
   height?: number;
@@ -104,8 +103,6 @@ export function getOptimizedImageUrl(
   return url.replace(transformRegex, `/image/upload/${transformString}/`);
 }
 
-=======
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 /**
  * Sleep for a given number of milliseconds (for testing loading states).
  */

@@ -244,11 +244,7 @@ export default function SearchFilterBar({
     }
   }
 
-<<<<<<< HEAD
   function handleClearSearch() {
-=======
-  function handleCancelSearch() {
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
     if (searchTimerRef.current) {
       clearTimeout(searchTimerRef.current);
       searchTimerRef.current = null;
@@ -462,13 +458,8 @@ export default function SearchFilterBar({
       {isSearchActive && (
         <button
           type="button"
-<<<<<<< HEAD
           onClick={handleClearSearch}
           className="search-clear-btn search-cancel-btn animate-fade-in"
-=======
-          onClick={handleCancelSearch}
-          className="search-cancel-btn animate-fade-in"
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
           style={{
             background: "transparent",
             border: "none",
@@ -480,15 +471,10 @@ export default function SearchFilterBar({
             flexShrink: 0,
             userSelect: "none",
           }}
-<<<<<<< HEAD
           aria-label="Clear search"
           title="Clear search"
         >
           Clear
-=======
-        >
-          Cancel
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
         </button>
       )}
     </div>

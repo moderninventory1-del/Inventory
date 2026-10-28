@@ -42,7 +42,6 @@ async function getInitialInventory(
   });
 }
 
-<<<<<<< HEAD
 async function getCategories() {
   try {
     const list = await prisma.category.findMany({
@@ -56,8 +55,6 @@ async function getCategories() {
   }
 }
 
-=======
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 async function getBrands() {
   try {
     return await prisma.brand.findMany({
@@ -125,21 +122,13 @@ export default async function PublicInventoryPage({ searchParams }: PageProps) {
   const brandId = params.brand ?? "";
   const sort: "latest" | "oldest" = params.sort === "oldest" ? "oldest" : "latest";
 
-<<<<<<< HEAD
   const [brands, categories] = await Promise.all([getBrands(), getCategories()]);
-=======
-  const brands = await getBrands();
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 
   return (
     <div className="page-container public-page-wrapper">
       {/* ── Top Header & Sliding Sticky Search Bar ── */}
       <Suspense fallback={null}>
-<<<<<<< HEAD
         <PublicPageHeader brands={brands} categories={categories} />
-=======
-        <PublicPageHeader brands={brands} categories={ITEM_CATEGORIES} />
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
       </Suspense>
 
       {/* ── 3. Inventory grid with instant streaming skeleton fallback ── */}

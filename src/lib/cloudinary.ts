@@ -50,27 +50,16 @@ export async function deleteImage(publicId: string): Promise<void> {
   await cloudinary.uploader.destroy(publicId);
 }
 
-<<<<<<< HEAD
 import { getOptimizedImageUrl, type CloudinaryOptimizeOptions } from "@/lib/utils";
 
-=======
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 /**
  * Build a Cloudinary optimized image URL with transformations.
  */
 export function getOptimizedUrl(
   src: string,
-<<<<<<< HEAD
   options: CloudinaryOptimizeOptions = {}
 ): string {
   return getOptimizedImageUrl(src, options);
-=======
-  options: { width?: number; height?: number; quality?: string } = {}
-): string {
-  const { width = 400, quality = "auto:good" } = options;
-  // For already-cloudinary URLs, return as-is (Next/Image handles optimization)
-  return src;
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 }
 
 export { cloudinary };

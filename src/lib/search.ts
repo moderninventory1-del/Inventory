@@ -134,11 +134,7 @@ export async function searchPublicInventory({
   let paramIdx = 1;
 
   if (category) {
-<<<<<<< HEAD
     conditions.push(`i.category = $${paramIdx++}`);
-=======
-    conditions.push(`i.category = $${paramIdx++}::"ItemCategory"`);
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
     params.push(category);
   }
 
@@ -285,11 +281,7 @@ export async function searchAdminInventory({
   }
 
   if (category) {
-<<<<<<< HEAD
     conditions.push(`i.category = $${paramIdx++}`);
-=======
-    conditions.push(`i.category = $${paramIdx++}::"ItemCategory"`);
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
     params.push(category);
   }
 

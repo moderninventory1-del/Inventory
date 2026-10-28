@@ -32,7 +32,6 @@ export default function AdminBottomNav() {
     return pathname === "/admin/inventory/new";
   }
 
-<<<<<<< HEAD
   // Hide bottom navigation bar on item view, edit, and restore pages
   // (e.g. /admin/inventory/[id], /admin/inventory/[id]/edit, /admin/inventory/[id]/edit?restore=true)
   const isItemDetailOrEdit =
@@ -40,15 +39,6 @@ export default function AdminBottomNav() {
     pathname !== "/admin/inventory/new";
 
   if (isItemDetailOrEdit) {
-=======
-  // Hide bottom navigation bar on item view page (e.g. /admin/inventory/[id])
-  const isItemView =
-    pathname.startsWith("/admin/inventory/") &&
-    pathname !== "/admin/inventory/new" &&
-    !pathname.endsWith("/edit");
-
-  if (isItemView) {
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
     return null;
   }
 

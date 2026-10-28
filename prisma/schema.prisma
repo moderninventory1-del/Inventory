@@ -8,17 +8,10 @@ datasource db {
   provider = "postgresql"
 }
 
-<<<<<<< HEAD
 model Category {
   id        String   @id @default(cuid())
   name      String   @unique
   createdAt DateTime @default(now())
-=======
-enum ItemCategory {
-  CARD
-  SUPPLY
-  INVERTER
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 }
 
 model Brand {
@@ -33,11 +26,7 @@ model InventoryItem {
   modelNumber String
   brandId     String
   brand       Brand        @relation(fields: [brandId], references: [id])
-<<<<<<< HEAD
   category    String
-=======
-  category    ItemCategory
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
   boxLocation String?      // admin-only field
   description String?      @db.Text
   frontImage  String       // Cloudinary secure URL

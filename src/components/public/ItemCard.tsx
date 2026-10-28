@@ -7,7 +7,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Tv2 } from "lucide-react";
 import type { PublicInventoryItem } from "@/types";
-<<<<<<< HEAD
 import { formatDate, getOptimizedImageUrl } from "@/lib/utils";
 
 interface ItemCardProps {
@@ -16,15 +15,6 @@ interface ItemCardProps {
 }
 
 export default function ItemCard({ item, priority = false }: ItemCardProps) {
-=======
-import { formatDate } from "@/lib/utils";
-
-interface ItemCardProps {
-  item: PublicInventoryItem;
-}
-
-export default function ItemCard({ item }: ItemCardProps) {
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
   const [imgLoaded, setImgLoaded] = useState(false);
 
   return (
@@ -63,11 +53,7 @@ export default function ItemCard({ item }: ItemCardProps) {
             />
           )}
           <Image
-<<<<<<< HEAD
             src={getOptimizedImageUrl(item.frontImage, { width: 500, quality: "auto:good" })}
-=======
-            src={item.frontImage}
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
             alt={`${item.brand.name} ${item.modelNumber}`}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -77,13 +63,9 @@ export default function ItemCard({ item }: ItemCardProps) {
               opacity: imgLoaded ? 1 : 0,
               transition: "opacity 240ms ease-out",
             }}
-<<<<<<< HEAD
             loading={priority ? "eager" : "lazy"}
             priority={priority}
             unoptimized
-=======
-            loading="lazy"
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
             onLoad={() => setImgLoaded(true)}
           />
           {/* Category badge overlay */}

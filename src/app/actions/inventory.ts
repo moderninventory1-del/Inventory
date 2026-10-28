@@ -77,7 +77,6 @@ export async function createInventoryItem(formData: FormData): Promise<ActionRes
       backUrl = backUpload.secure_url;
     }
 
-<<<<<<< HEAD
     const categoryName = data.category.trim().toUpperCase();
     await prisma.category
       .upsert({
@@ -87,17 +86,11 @@ export async function createInventoryItem(formData: FormData): Promise<ActionRes
       })
       .catch(() => {});
 
-=======
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
     await prisma.inventoryItem.create({
       data: {
         modelNumber: data.modelNumber.trim(),
         brandId: data.brandId.trim(),
-<<<<<<< HEAD
         category: categoryName,
-=======
-        category: data.category.trim().toUpperCase() as ItemCategory,
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
         boxLocation: data.boxLocation.trim() || null,
         description: data.description.trim() || null,
         frontImage: frontUpload.secure_url,
@@ -128,13 +121,8 @@ export async function updateInventoryItem(
     await requireAdmin();
 
     const existingItem = await prisma.inventoryItem.findUnique({
-<<<<<<< HEAD
       where: { id },
       select: { frontImage: true, backImage: true, isDeleted: true },
-=======
-      where: { id, isDeleted: false },
-      select: { frontImage: true, backImage: true },
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
     });
 
     if (!existingItem) return { success: false, error: "Item not found" };
@@ -170,7 +158,6 @@ export async function updateInventoryItem(
     const clearBack = formData.get("clearBackImage") === "true";
     if (clearBack) backUrl = null;
 
-<<<<<<< HEAD
     const categoryName = data.category.trim().toUpperCase();
     await prisma.category
       .upsert({
@@ -213,28 +200,12 @@ export async function updateInventoryItem(
     await prisma.inventoryItem.update({
       where: { id },
       data: updateData,
-=======
-    await prisma.inventoryItem.update({
-      where: { id },
-      data: {
-        modelNumber: data.modelNumber.trim(),
-        brandId: data.brandId.trim(),
-        category: data.category.trim().toUpperCase() as ItemCategory,
-        boxLocation: data.boxLocation.trim() || null,
-        description: data.description.trim() || null,
-        frontImage: frontUrl,
-        backImage: backUrl,
-      },
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
     });
 
     revalidatePath("/");
     revalidatePath("/admin/inventory");
     revalidatePath(`/item/${id}`);
-<<<<<<< HEAD
     revalidatePath(`/admin/inventory/${id}`);
-=======
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
     revalidatePath("/admin");
   } catch (err) {
     console.error("[updateInventoryItem]", err);
@@ -350,7 +321,6 @@ export type CategoryActionResult =
   | { success: false; error: string };
 
 export async function createCategory(name: string): Promise<CategoryActionResult> {
-<<<<<<< HEAD
   try {
     await requireAdmin();
     const trimmedName = name.trim().toUpperCase();
@@ -382,9 +352,6 @@ export async function createCategory(name: string): Promise<CategoryActionResult
     console.error("[createCategory]", err);
     return { success: false, error: "Failed to create category" };
   }
-=======
-  return { success: false, error: "Categories are managed by system enum" };
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 }
 
 // ─── Not Sure State Management ──────────────────────────────────────────────

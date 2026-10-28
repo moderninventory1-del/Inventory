@@ -9,20 +9,13 @@ import InventoryForm from "@/components/admin/InventoryForm";
 import { updateInventoryItem } from "@/app/actions/inventory";
 import Link from "next/link";
 import type { Metadata } from "next";
-<<<<<<< HEAD
 import { ArrowLeft, RotateCcw } from "lucide-react";
-=======
-import { ArrowLeft } from "lucide-react";
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 import MobileMenuButton from "@/components/admin/MobileMenuButton";
 import { ITEM_CATEGORIES } from "@/types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
-<<<<<<< HEAD
   searchParams?: Promise<{ restore?: string }>;
-=======
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -40,16 +33,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export const dynamic = "force-dynamic";
 
-<<<<<<< HEAD
 export default async function EditInventoryItemPage({ params, searchParams }: PageProps) {
-=======
-export default async function EditInventoryItemPage({ params }: PageProps) {
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
   const session = await getServerSession(authOptions);
   if (!session || session.user.role !== "admin") redirect("/login");
 
   const { id } = await params;
-<<<<<<< HEAD
   const { restore } = (await searchParams) ?? {};
 
   let item = null;
@@ -57,29 +45,16 @@ export default async function EditInventoryItemPage({ params }: PageProps) {
   let dbCategories: { id: string; name: string }[] = [];
   try {
     const [fetchedItem, fetchedBrands, fetchedCategories] = await Promise.all([
-=======
-
-  let item = null;
-  let brands: { id: string; name: string }[] = [];
-  try {
-    const [fetchedItem, fetchedBrands] = await Promise.all([
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
       prisma.inventoryItem.findUnique({
         where: { id },
         include: { brand: true },
       }),
       prisma.brand.findMany({ orderBy: { name: "asc" } }),
-<<<<<<< HEAD
       prisma.category.findMany({ orderBy: { name: "asc" } }),
     ]);
     item = fetchedItem;
     brands = fetchedBrands;
     dbCategories = fetchedCategories;
-=======
-    ]);
-    item = fetchedItem;
-    brands = fetchedBrands;
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
   } catch (err) {
     console.error(`[EditInventoryItemPage] Error fetching item ${id}:`, err);
   }
@@ -95,12 +70,9 @@ export default async function EditInventoryItemPage({ params }: PageProps) {
       if (brands.length === 0) {
         brands = await prisma.brand.findMany({ orderBy: { name: "asc" } });
       }
-<<<<<<< HEAD
       if (dbCategories.length === 0) {
         dbCategories = await prisma.category.findMany({ orderBy: { name: "asc" } });
       }
-=======
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
     } catch (retryErr) {
       console.error(`[EditInventoryItemPage] Retry error fetching item ${id}:`, retryErr);
     }
@@ -108,7 +80,6 @@ export default async function EditInventoryItemPage({ params }: PageProps) {
 
   if (!item) notFound();
 
-<<<<<<< HEAD
   if (item.isDeleted && restore !== "true") {
     redirect(`/admin/inventory/${id}/edit?restore=true`);
   }
@@ -117,18 +88,12 @@ export default async function EditInventoryItemPage({ params }: PageProps) {
     dbCategories.length > 0
       ? dbCategories
       : ITEM_CATEGORIES.map((c) => ({ id: c, name: c }));
-=======
-  const categories = ITEM_CATEGORIES.map((c) => ({ id: c, name: c }));
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 
   // Bind the id to the action
   const updateAction = updateInventoryItem.bind(null, id);
 
-<<<<<<< HEAD
   const isRestoring = Boolean(item.isDeleted || restore === "true");
 
-=======
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
   return (
     <div style={{ maxWidth: "800px" }}>
       {/* Header */}
@@ -145,7 +110,6 @@ export default async function EditInventoryItemPage({ params }: PageProps) {
           </Link>
         </div>
         <h1 style={{ fontSize: "22px", fontWeight: 800, letterSpacing: "-0.03em" }}>
-<<<<<<< HEAD
           {isRestoring ? "Edit & Restore Item" : "Edit Item"}
         </h1>
         <p style={{ fontSize: "14px", color: "var(--color-text-muted)", marginTop: "4px" }}>
@@ -198,16 +162,6 @@ export default async function EditInventoryItemPage({ params }: PageProps) {
         action={updateAction}
         isRestoring={isRestoring}
       />
-=======
-          Edit Item
-        </h1>
-        <p style={{ fontSize: "14px", color: "var(--color-text-muted)", marginTop: "4px" }}>
-          {item.brand.name} — {item.modelNumber}
-        </p>
-      </div>
-
-      <InventoryForm item={item} brands={brands} categories={categories} action={updateAction} />
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
     </div>
   );
 }

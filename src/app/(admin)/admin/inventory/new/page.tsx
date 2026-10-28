@@ -21,7 +21,6 @@ export default async function NewInventoryItemPage() {
   const session = await getServerSession(authOptions);
   if (!session || session.user.role !== "admin") redirect("/login");
 
-<<<<<<< HEAD
   const [brands, dbCategories] = await Promise.all([
     prisma.brand.findMany({ orderBy: { name: "asc" } }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
@@ -30,10 +29,6 @@ export default async function NewInventoryItemPage() {
     dbCategories.length > 0
       ? dbCategories
       : ITEM_CATEGORIES.map((c) => ({ id: c, name: c }));
-=======
-  const brands = await prisma.brand.findMany({ orderBy: { name: "asc" } });
-  const categories = ITEM_CATEGORIES.map((c) => ({ id: c, name: c }));
->>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 
   return (
     <div style={{ maxWidth: "800px" }}>
