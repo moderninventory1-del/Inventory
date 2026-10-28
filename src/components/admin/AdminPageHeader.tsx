@@ -3,6 +3,11 @@
 // Interactive admin inventory header with slide-up collapse and sticky docked search bar
 
 import { useState, useCallback, useRef } from "react";
+<<<<<<< HEAD
+=======
+import Link from "next/link";
+import { PlusCircle } from "lucide-react";
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 import SearchFilterBar from "@/components/shared/SearchFilterBar";
 import MobileMenuButton from "@/components/admin/MobileMenuButton";
 
@@ -76,6 +81,30 @@ export default function AdminPageHeader({
               </p>
             </div>
           </div>
+<<<<<<< HEAD
+=======
+
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+            <Link
+              href="/admin/inventory/new"
+              className="btn-primary"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "7px",
+                fontSize: "13.5px",
+                fontWeight: 700,
+                padding: "8px 16px",
+                borderRadius: "100px",
+                textDecoration: "none",
+                boxShadow: "0 2px 8px rgba(0, 113, 227, 0.25)",
+              }}
+            >
+              <PlusCircle size={15} strokeWidth={2.4} />
+              <span>Add Item</span>
+            </Link>
+          </div>
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
         </div>
       </section>
 

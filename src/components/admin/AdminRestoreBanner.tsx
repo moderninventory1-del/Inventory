@@ -3,7 +3,10 @@
 // Apple-styled banner displayed on deleted item detail pages with one-click restore
 
 import { useState } from "react";
+<<<<<<< HEAD
 import Link from "next/link";
+=======
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 import { RotateCcw, AlertTriangle } from "lucide-react";
 import SlideToRestoreModal from "@/components/admin/SlideToRestoreModal";
 
@@ -98,8 +101,13 @@ export default function AdminRestoreBanner({
         </div>
       </div>
 
+<<<<<<< HEAD
         <Link
           href={`/admin/inventory/${id}/edit?restore=true`}
+=======
+        <button
+          onClick={() => setIsRestoreModalOpen(true)}
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
           className="btn-primary"
           style={{
             background: "linear-gradient(135deg, #16a34a 0%, #15803d 100%)",
@@ -115,6 +123,7 @@ export default function AdminRestoreBanner({
             boxShadow: "0 3px 12px rgba(22, 163, 74, 0.28)",
             cursor: "pointer",
             flexShrink: 0,
+<<<<<<< HEAD
             textDecoration: "none",
           }}
           title="Review and restore this item to active inventory"
@@ -122,6 +131,14 @@ export default function AdminRestoreBanner({
           <RotateCcw size={15} strokeWidth={2.4} />
           <span>Restore to Inventory</span>
         </Link>
+=======
+          }}
+          title="Restore this item to active inventory"
+        >
+          <RotateCcw size={15} strokeWidth={2.4} />
+          <span>Restore to Inventory</span>
+        </button>
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
       </div>
 
       <SlideToRestoreModal

@@ -27,7 +27,11 @@ import {
   MessageSquareText,
 } from "lucide-react";
 import { resolveNotSureItem } from "@/app/actions/inventory";
+<<<<<<< HEAD
 import { formatDateTime, getOptimizedImageUrl } from "@/lib/utils";
+=======
+import { formatDateTime } from "@/lib/utils";
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 import toast from "react-hot-toast";
 
 interface NotSureItem {
@@ -678,12 +682,19 @@ export default function AdminNotSureModal() {
               title="Click photo to open item in admin panel"
             >
               <Image
+<<<<<<< HEAD
                 src={getOptimizedImageUrl(currentItem.frontImage, { width: 600, quality: "auto:good" })}
+=======
+                src={currentItem.frontImage}
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
                 alt={currentItem.modelNumber}
                 fill
                 sizes="(max-width: 500px) 100vw, 420px"
                 style={{ objectFit: "contain" }}
+<<<<<<< HEAD
                 unoptimized
+=======
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
                 priority
               />
 

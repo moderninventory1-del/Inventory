@@ -17,12 +17,21 @@ export default function ScrollToTopProgress({ isAdmin = false }: ScrollToTopProg
   const [isVisible, setIsVisible] = useState(false);
 
   // Check if admin bottom nav is active on this route
+<<<<<<< HEAD
   // (Hidden on item detail, edit, and restore pages)
   const hasBottomNav =
     isAdmin &&
     !(
       (pathname?.startsWith("/admin/inventory/") || pathname?.startsWith("/admin/item/")) &&
       pathname !== "/admin/inventory/new"
+=======
+  const hasBottomNav =
+    isAdmin &&
+    !(
+      pathname?.startsWith("/admin/inventory/") &&
+      pathname !== "/admin/inventory/new" &&
+      !pathname?.endsWith("/edit")
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
     );
 
   useEffect(() => {

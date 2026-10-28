@@ -139,6 +139,7 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
       : {}),
   };
 
+<<<<<<< HEAD
   const [totalCount, brands, boxes, dbCategories] = await Promise.all([
     prisma.inventoryItem.count({ where: countWhere }),
     prisma.brand.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
@@ -149,6 +150,14 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
     dbCategories.length > 0
       ? dbCategories
       : ITEM_CATEGORIES.map((c) => ({ id: c, name: c }));
+=======
+  const [totalCount, brands, boxes] = await Promise.all([
+    prisma.inventoryItem.count({ where: countWhere }),
+    prisma.brand.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    brandId ? getBoxesForBrand(brandId) : Promise.resolve([]),
+  ]);
+  const categories = ITEM_CATEGORIES;
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 
   const statusLabel =
     status === "deleted" ? "deleted "

@@ -10,7 +10,10 @@ import type { Metadata } from "next";
 import { Package, PackageX, TrendingUp, PlusCircle, Tv2 } from "lucide-react";
 import MobileMenuButton from "@/components/admin/MobileMenuButton";
 import AdminNotSureModal from "@/components/admin/AdminNotSureModal";
+<<<<<<< HEAD
 import { getOptimizedImageUrl } from "@/lib/utils";
+=======
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -224,6 +227,7 @@ export default async function AdminDashboard() {
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
+<<<<<<< HEAD
                     src={getOptimizedImageUrl(item.frontImage, {
                       width: 120,
                       height: 90,
@@ -233,6 +237,11 @@ export default async function AdminDashboard() {
                     alt=""
                     style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     loading="lazy"
+=======
+                    src={item.frontImage}
+                    alt=""
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
                   />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>

@@ -14,12 +14,16 @@ import { formatDate } from "@/lib/utils";
 import SlideToDeleteModal from "@/components/admin/SlideToDeleteModal";
 import SlideToRestoreModal from "@/components/admin/SlideToRestoreModal";
 import { clearAllInventoryCaches } from "@/lib/scroll-cache";
+<<<<<<< HEAD
 import { getOptimizedImageUrl } from "@/lib/utils";
+=======
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 
 interface AdminItemCardProps {
   item: InventoryItem;
   showDeleted?: boolean;
   onDelete?: (id: string) => void;
+<<<<<<< HEAD
   priority?: boolean;
 }
 
@@ -29,6 +33,11 @@ export default function AdminItemCard({
   onDelete,
   priority = false,
 }: AdminItemCardProps) {
+=======
+}
+
+export default function AdminItemCard({ item, showDeleted = false, onDelete }: AdminItemCardProps) {
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
   const [isPending, startTransition] = useTransition();
   const [localDeleted, setLocalDeleted] = useState(item.isDeleted);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -101,7 +110,11 @@ export default function AdminItemCard({
             />
           )}
           <Image
+<<<<<<< HEAD
             src={getOptimizedImageUrl(item.frontImage, { width: 500, quality: "auto:good" })}
+=======
+            src={item.frontImage}
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
             alt={`${item.brand.name} ${item.modelNumber}`}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -111,9 +124,13 @@ export default function AdminItemCard({
               opacity: imgLoaded ? 1 : 0,
               transition: "opacity 240ms ease-out",
             }}
+<<<<<<< HEAD
             loading={priority ? "eager" : "lazy"}
             priority={priority}
             unoptimized
+=======
+            loading="lazy"
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
             onLoad={() => setImgLoaded(true)}
           />
           {/* Category badge overlay */}
@@ -305,8 +322,13 @@ export default function AdminItemCard({
                   <Eye size={15} />
                   <span>View Details</span>
                 </Link>
+<<<<<<< HEAD
                 <Link
                   href={`/admin/inventory/${item.id}/edit?restore=true`}
+=======
+                <button
+                  onClick={() => setIsRestoreModalOpen(true)}
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
                   className="btn-secondary"
                   style={{
                     padding: "8px 12px",
@@ -319,6 +341,7 @@ export default function AdminItemCard({
                     color: "#16a34a",
                     borderColor: "rgba(34, 197, 94, 0.35)",
                     background: "rgba(34, 197, 94, 0.08)",
+<<<<<<< HEAD
                     textDecoration: "none",
                   }}
                   title="Review and restore this item back to active inventory"
@@ -326,6 +349,14 @@ export default function AdminItemCard({
                   <RotateCcw size={15} />
                   <span>Restore</span>
                 </Link>
+=======
+                  }}
+                  title="Restore this item back to active inventory"
+                >
+                  <RotateCcw size={15} />
+                  <span>Restore</span>
+                </button>
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
               </div>
             ) : (
               <>

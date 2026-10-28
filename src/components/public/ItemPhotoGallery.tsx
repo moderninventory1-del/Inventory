@@ -6,7 +6,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
+<<<<<<< HEAD
 import { getOptimizedImageUrl } from "@/lib/utils";
+=======
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
 
 interface ItemPhotoGalleryProps {
   frontImage: string;
@@ -508,7 +511,11 @@ export default function ItemPhotoGallery({
           />
         )}
         <Image
+<<<<<<< HEAD
           src={getOptimizedImageUrl(frontImage, { width: 800, quality: "auto:good" })}
+=======
+          src={frontImage}
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
           alt={`${altText} — front`}
           fill
           sizes="(max-width: 768px) 100vw, 55vw"
@@ -519,7 +526,10 @@ export default function ItemPhotoGallery({
             transition: "opacity 280ms ease-out",
           }}
           priority
+<<<<<<< HEAD
           unoptimized
+=======
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
           onLoad={() => setIsFrontLoaded(true)}
         />
         <div style={{ position: "absolute", top: "12px", left: "12px", zIndex: 2 }}>
@@ -555,7 +565,11 @@ export default function ItemPhotoGallery({
             />
           )}
           <Image
+<<<<<<< HEAD
             src={getOptimizedImageUrl(backImage, { width: 800, quality: "auto:good" })}
+=======
+            src={backImage}
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
             alt={`${altText} — back`}
             fill
             sizes="(max-width: 768px) 100vw, 55vw"
@@ -566,7 +580,10 @@ export default function ItemPhotoGallery({
               transition: "opacity 280ms ease-out",
             }}
             loading="lazy"
+<<<<<<< HEAD
             unoptimized
+=======
+>>>>>>> 34a91b3ca934d6332eda3f205721535ec4faf943
             onLoad={() => setIsBackLoaded(true)}
           />
           <div
